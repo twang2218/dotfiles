@@ -5,6 +5,8 @@
 user_name="Tao Wang"
 user_email="twang2218@gmail.com"
 
+DEBIAN_FRONTEND=noninteractive
+
 # Update
 function update_apt() {
 	sudo apt-get update
@@ -210,6 +212,7 @@ function install_oh_my_zsh() {
 
 function install_bin() {
 	BASEURL=https://coding.net/u/twang2218/p/dotfiles/git/raw/master
+	mkdir -p ~/bin
 	wget $BASEURL/bin/qq -O ~/bin/qq
 
 	chmod u+x ~/bin/*
