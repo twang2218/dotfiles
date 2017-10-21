@@ -36,6 +36,7 @@ function install_common() {
 		tzdata \
 		strace \
 		build-essential \
+		neofetch \
 		lsb-release \
 		gddrescue \
 		terminator \
@@ -57,7 +58,8 @@ function install_kernel() {
 						sudo apt-get install -y \
 							linux-generic-hwe-16.04 \
 							xserver-xorg-hwe-16.04
-		*)			echo "Usage: $0 (xenial)"
+							;;
+		*)			echo "Usage: $0 (xenial)" ;;
 	esac
 }
 
@@ -192,7 +194,13 @@ function install_snaps() {
 # Remove Unwanted
 function remove_unwanted() {
 	# Remove apport
-	sudo apt-get remove -y apport
+	sudo apt-get remove -y \
+		apport \
+		gnome-sudoku \
+		gnome-mahjongg \
+		aisleriot \
+		gnome-mines \
+
 }
 
 # oh-my-zsh
