@@ -72,11 +72,16 @@ function install_git() {
 
 # Docker
 function install_docker() {
-	#	curl -fsSL https://get.docker.com/ | sh -s -- --mirror Aliyun
-	curl -fsSL https://get.docker.com/ | sh
 	sudo addgroup --system docker
 	sudo adduser $USER docker
 	newgrp docker
+
+	if [ "artful" == "$(distro_version)" ]; then
+		sudo apt-get install -y docker.io
+	else
+		#	curl -fsSL https://get.docker.com/ | sh -s -- --mirror Aliyun
+		curl -fsSL https://get.docker.com/ | sh
+	fi
 }
 
 # Virtualbox
@@ -98,13 +103,19 @@ function install_virtualbox() {
 	esac
 }
 
-# adapta - Material Design theme
+# Adapta - Material Design theme
 function install_adapta() {
+	# Adapta - Material Design
 	sudo add-apt-repository -y ppa:tista/adapta
 	sudo apt-get update
 	sudo apt-get install -y adapta-gtk-theme
 
-	if [ "artful" == "$(distro_version)" ]; then
+	# Setting the theme
+	gsettings set org.gnome.desktop.interface gtk-theme "Adapta-Nokto-Eta"
+	gsettings set org.gnome.desktop.interface cursor-theme "DMZ-Black"
+
+	if [ "artful" != "$(distro_version)" ]; then
+		# Paper Icon
 		sudo add-apt-repository -y ppa:snwh/pulp
 		sudo apt-get update
 		sudo apt-get install -y \
@@ -112,10 +123,12 @@ function install_adapta() {
 			paper-gtk-theme \
 			paper-cursor-theme
 	fi
+
+	# GNOME Tweak Tools
+	sudo apt-get install -y gnome-shell-extensions gnome-tweak-tool
 }
 
 # 中文输入法
-
 ## 安装 fcitx
 function install_fcitx() {
 	sudo apt-get install -y \
