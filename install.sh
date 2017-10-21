@@ -1,90 +1,186 @@
 #!/bin/bash
 
-distro_version=$(lsb_release -s -c)
+# wget http://tinyurl.com/y94cjsmh -O- | sh
+
 user_name="Tao Wang"
 user_email="twang2218@gmail.com"
 
 # Update
-sudo apt-get update
-sudo apt-get dist-upgrade -y
+function update_apt() {
+	sudo apt-get update
+	sudo apt-get dist-upgrade -y
+}
+
+function config_apt() {
+	cat <<EOF | sudo tee /etc/apt/apt.conf.d/50no-recommends
+APT::Get::Install-Recommends "false";
+APT::Get::Install-Suggests "false";
+EOF
+}
+
+# get distro version
+function distro_version() {
+	lsb_release -s -c
+}
 
 # Common Tools
-sudo apt-get install -y --no-install-recommends \
-	apt-transport-https \
-	curl \
-	zsh \
-	pv \
-	git \
-	jq \
-	tree \
-	tzdata \
-	strace \
-	build-essential \
-	gddrescue \
-	terminator \
-	smartmontools
+function install_common() {
+	sudo apt-get install -y \
+		apt-transport-https \
+		curl \
+		zsh \
+		pv \
+		git \
+		jq \
+		tree \
+		tzdata \
+		strace \
+		build-essential \
+		lsb-release \
+		gddrescue \
+		terminator \
+		smartmontools
+}
 
 # Graphics Driver
-sudo apt-get install -y xserver-xorg-video-intel
+function install_graphics() {
+	case $1 in
+		intel)	sudo apt-get install -y xserver-xorg-video-intel	;;
+		*)			echo "Usage: $0 (intel)"	;;
+	esac
+}
 
-# Ubuntu 16.04
-# sudo apt-get install -y --install-recommends linux-generic-hwe-16.04 xserver-xorg-hwe-16.04
+# Kernel
+function install_kernel() {
+	case $(distro_version) in
+		xenial)
+						sudo apt-get install -y \
+							linux-generic-hwe-16.04 \
+							xserver-xorg-hwe-16.04
+		*)			echo "Usage: $0 (xenial)"
+	esac
+}
 
 # Git
-git config --global credential.helper store
-git config --global user.name $user_name
-git config --global user.email $user_email
+function install_git() {
+	local user_name=$1
+	local user_email=$2
+	git config --global credential.helper store
+	git config --global user.name $user_name
+	git config --global user.email $user_email
+}
 
 # Docker
-curl https://get.docker.com/ | sh
-sudo usermod -aG docker $user
-newgrp docker
+function install_docker() {
+	#	curl -fsSL https://get.docker.com/ | sh -s -- --mirror Aliyun
+	curl -fsSL https://get.docker.com/ | sh
+	sudo addgroup --system docker
+	sudo adduser $USER docker
+	newgrp docker
+}
 
 # Virtualbox
-echo "deb http://download.virtualbox.org/virtualbox/debian $(distro_version) contrib" | sudo tee /etc/apt/sources.list.d/virtualbox.list
-sudo apt-get update
-sudo apt-get install -y virtualbox-5.2
+function install_virtualbox() {
+	case $(distro_version) in
+		artful)
+						sudo apt-get install -y \
+							virtualbox \
+							virtualbox-dkms \
+							virtualbox-ext-pack \
+							virtualbox-guest-additions-iso
+						;;
+		*)
+						echo "deb http://download.virtualbox.org/virtualbox/debian $distro_version contrib" \
+							| sudo tee /etc/apt/sources.list.d/virtualbox.list
+						sudo apt-get install -y \
+							virtualbox-5.2
+						;;
+	esac
+}
 
 # adapta - Material Design theme
-sudo add-apt-repository -y ppa:tista/adapta
-sudo add-apt-repository -y ppa:snwh/pulp
-sudo apt-get update
-sudo apt-get install -y \
-	adapta-gtk-theme \
-	paper-icon-theme \
-	paper-gtk-theme \
-	paper-cursor-theme
+function install_adapta() {
+	sudo add-apt-repository -y ppa:tista/adapta
+	sudo apt-get update
+	sudo apt-get install -y adapta-gtk-theme
+
+	if [ "artful" == "$(distro_version)" ]; then
+		sudo add-apt-repository -y ppa:snwh/pulp
+		sudo apt-get update
+		sudo apt-get install -y \
+			paper-icon-theme \
+			paper-gtk-theme \
+			paper-cursor-theme
+	fi
+}
 
 # 中文输入法
-sudo apt-get install fcitx fcitx-config-gtk fcitx-table-all im-config
-wget https://pinyin.sogou.com/linux/download.php?f=linux&bit=64 -O /tmp/sogoupinyin.deb
-sudo apt install -y /tmp/sogoupinyin.deb
-rm /tmp/sogoupinyin.deb
+function install_sogou() {
+	sudo apt-get install -y \
+		fcitx \
+		fcitx-config-gtk \
+		fcitx-table-all \
+		fcitx-googlepinyin \
+		fcitx-module-cloudpinyin \
+		fcitx-pinyin \
+		im-config
+	im-config -n fcitx
+	wget https://pinyin.sogou.com/linux/download.php?f=linux&bit=64 -O /tmp/sogoupinyin.deb
+	sudo apt install -y /tmp/sogoupinyin.deb
+	rm /tmp/sogoupinyin.deb
+}
 
 # Wire
-wget -q https://wire-app.wire.com/linux/releases.key -O- | sudo apt-key add -
-echo "deb https://wire-app.wire.com/linux/debian stable main" | sudo tee /etc/apt/sources.list.d/wire-desktop.list
-sudo apt-get update
-sudo apt-get install -y wire-desktop
+function install_wire() {
+	wget -q https://wire-app.wire.com/linux/releases.key -O- | sudo apt-key add -
+	echo "deb https://wire-app.wire.com/linux/debian stable main" | sudo tee /etc/apt/sources.list.d/wire-desktop.list
+	sudo apt-get update
+	sudo apt-get install -y wire-desktop
+}
 
 # keeweb
-KEEWEB_VERSION=1.5.6
-wget https://github.com/keeweb/keeweb/releases/download/v$KEEWEB_VERSION/KeeWeb-$KEEWEB_VERSION.linux.x64.deb -O /tmp/keeweb.deb
-sudo apt install -y /tmp/keeweb.deb
-rm /tmp/keeweb.deb
-
-# Remove apport
-sudo apt-get remove -y apport
+function install_keeweb() {
+	KEEWEB_VERSION=1.5.6
+	wget https://github.com/keeweb/keeweb/releases/download/v$KEEWEB_VERSION/KeeWeb-$KEEWEB_VERSION.linux.x64.deb -O /tmp/keeweb.deb
+	sudo apt install -y /tmp/keeweb.deb
+	rm /tmp/keeweb.deb
+}
 
 # Snap apps
+function install_snaps() {
+	sudo snap install zeal-casept
+	sudo snap install --classic vscode
+	sudo snap install --classic go
+	sudo snap install chromium
+}
 
-## Zeal
-sudo snap install zeal-casept
-sudo snap install --classic vscode
-sudo snap install --classic go
-sudo snap install chromium
+# Remove Unwanted
+function remove_unwanted() {
+	# Remove apport
+	sudo apt-get remove -y apport
+}
 
 # oh-my-zsh
-sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+function install_oh_my_zsh() {
+	sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+}
 
+function main() {
+	update_apt
+	config_apt
+	install_common
+	install_graphics intel
+	install_kernel
+	install_git
+	install_docker
+	install_virtualbox
+	install_adapta
+	install_sogou
+	install_wire
+	install_keeweb
+	install_snaps
+	remove_unwanted
+	install_oh_my_zsh
+}
 
+main
