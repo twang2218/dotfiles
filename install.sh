@@ -1,6 +1,8 @@
 #!/bin/bash
 
 distro_version=$(lsb_release -s -c)
+user_name="Tao Wang"
+user_email="twang2218@gmail.com"
 
 # Update
 sudo apt-get update
@@ -26,6 +28,11 @@ sudo apt-get install -y xserver-xorg-video-intel
 
 # Ubuntu 16.04
 # sudo apt-get install -y --install-recommends linux-generic-hwe-16.04 xserver-xorg-hwe-16.04
+
+# Git
+git config --global credential.helper store
+git config --global user.name $user_name
+git config --global user.email $user_email
 
 # Docker
 curl https://get.docker.com/ | sh
