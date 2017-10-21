@@ -1,11 +1,13 @@
 #!/bin/bash
 
-# wget http://tinyurl.com/y94cjsmh -O- | sh
+# wget http://tinyurl.com/y94cjsmh -O- | bash
+# or
+# bash -c "$(wget http://tinyurl.com/y94cjsmh -O -)"
 
 user_name="Tao Wang"
 user_email="twang2218@gmail.com"
 
-DEBIAN_FRONTEND=noninteractive
+export DEBIAN_FRONTEND=noninteractive
 
 # Update
 function update_apt() {
@@ -36,10 +38,12 @@ function install_common() {
 		jq \
 		tree \
 		tzdata \
-		strace \
+		strace
+	sudo apt-get install -y \
 		build-essential \
 		neofetch \
-		lsb-release \
+		lsb-release
+	sudo apt-get install -y \
 		gddrescue \
 		terminator \
 		smartmontools
@@ -188,9 +192,39 @@ function install_keeweb() {
 # Snap apps
 function install_snaps() {
 	sudo snap install zeal-casept
-	sudo snap install --classic vscode
 	sudo snap install --classic go
 	sudo snap install chromium
+}
+
+function install_vscode() {
+	sudo snap install --classic vscode
+
+	case $1 in
+		with_ext)
+			code --install-extension ms-vscode.cpptools
+			code --install-extension formulahendry.code-runner
+			code --install-extension anseki.vscode-color
+			code --install-extension PeterJausovec.vscode-docker
+			code --install-extension Perkovec.emoji
+			code --install-extension dbaeumer.vscode-eslint
+			code --install-extension donjayamanne.githistory
+			code --install-extension eamodio.gitlens
+			code --install-extension lukehoban.go
+			code --install-extension abusaidm.html-snippets
+			code --install-extension shd101wyy.markdown-preview-enhanced
+			code --install-extension mdickin.markdown-shortcuts
+			code --install-extension DavidAnson.vscode-markdownlint
+			code --install-extension PKief.material-icon-theme
+			code --install-extension Ikuyadeu.r
+			code --install-extension itryapitsin.scala
+			code --install-extension marcostazi.vs-code-vagrantfile
+			code --install-extension robertohuertasm.vscode-icons
+			code --install-extension WakaTime.vscode-wakatime
+			code --install-extension dzannotti.vscode-babel-coloring
+			code --install-extension HookyQR.beautify
+			code --install-extension msjsdiag.debugger-for-chrome
+			;;
+	esac
 }
 
 # Remove Unwanted
@@ -232,6 +266,7 @@ function main() {
 	install_wire
 	install_keeweb
 	install_snaps
+	install_vscode
 	remove_unwanted
 	install_bin
 	install_oh_my_zsh
