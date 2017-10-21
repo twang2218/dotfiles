@@ -200,6 +200,13 @@ function install_oh_my_zsh() {
 	sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 }
 
+function install_bin() {
+	BASEURL=https://coding.net/u/twang2218/p/dotfiles/git/raw/master
+	wget $BASEURL/bin/qq -O ~/bin/qq
+
+	chmod u+x ~/bin/*
+}
+
 function main() {
 	update_apt
 	config_apt
@@ -215,6 +222,7 @@ function main() {
 	install_keeweb
 	install_snaps
 	remove_unwanted
+	install_bin
 	install_oh_my_zsh
 }
 
