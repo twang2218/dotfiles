@@ -19,6 +19,7 @@ sudo apt-get install -y --no-install-recommends \
 	tree \
 	tzdata \
 	strace \
+	build-essential \
 	gddrescue \
 	terminator \
 	smartmontools
