@@ -115,7 +115,9 @@ function install_adapta() {
 }
 
 # 中文输入法
-function install_sogou() {
+
+## 安装 fcitx
+function install_fcitx() {
 	sudo apt-get install -y \
 		fcitx \
 		fcitx-config-gtk \
@@ -125,9 +127,29 @@ function install_sogou() {
 		fcitx-pinyin \
 		im-config
 	im-config -n fcitx
+
+	if ! grep -q XMODIFIERS /etc/environment; then
+		cat <<EOF | sudo tee -a /etc/environment
+GTK_IM_MODULE=fcitx
+QT_IM_MODULE=fcitx
+XMODIFIERS=@im=fcitx
+EOF
+	fi
+}
+
+## 安装搜狗输入法
+function install_sogou() {
+	install_fcitx
+
 	wget https://pinyin.sogou.com/linux/download.php?f=linux&bit=64 -O /tmp/sogoupinyin.deb
 	sudo apt install -y /tmp/sogoupinyin.deb
 	rm /tmp/sogoupinyin.deb
+}
+
+## 安装 iBus 输入法
+function install_ibus() {
+	sudo apt-get install -y \
+		ibus-pinyin
 }
 
 # Wire
@@ -175,7 +197,7 @@ function main() {
 	install_docker
 	install_virtualbox
 	install_adapta
-	install_sogou
+	install_ibus
 	install_wire
 	install_keeweb
 	install_snaps
