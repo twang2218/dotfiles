@@ -185,8 +185,15 @@ function install_sogou() {
 
 ## 安装 iBus 输入法
 function install_ibus() {
-	sudo apt-get install -y \
-		ibus-pinyin
+	# 安装 Pinyin 输入法
+	sudo apt-get install -y ibus-pinyin
+	# 替换 sunpinyin 输入法
+	local old_sources="$(gsettings get org.gnome.desktop.input-sources sources)"
+	local new_sources="$(echo $old_sources | sed -s 's/sunpinyin/pinyin/g')"
+	gsettings set org.gnome.desktop.input-sources sources "$new_sources"
+	echo "New IM Sources: $new_sources"
+	# 删除 sun pinyin
+	sudo apt-get purge -y ibus-sunpinyin
 }
 
 # Wire
