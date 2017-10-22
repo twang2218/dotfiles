@@ -141,6 +141,11 @@ function install_adapta() {
 # 中文输入法
 ## 安装 fcitx
 function install_fcitx() {
+	if dpkg -l fcitx | grep -q ii; then
+		echo "FCITX has been installed already."
+		return
+	fi
+
 	sudo apt-get install -y \
 		fcitx \
 		fcitx-config-gtk \
@@ -151,24 +156,31 @@ function install_fcitx() {
 		im-config
 	im-config -n fcitx
 
-	if ! grep -q XMODIFIERS /etc/environment; then
-		cat <<EOF | sudo tee -a /etc/environment
+	if grep -q XMODIFIERS /etc/environment; then
+		echo "IM environment variables have been added already."
+		return
+	fi
+
+	cat <<EOF | sudo tee -a /etc/environment
 GTK_IM_MODULE=fcitx
 QT_IM_MODULE=fcitx
 XMODIFIERS=@im=fcitx
 EOF
-	fi
+
 }
 
 ## 安装搜狗输入法
 function install_sogou() {
 	install_fcitx
 
-	if ! dpkg -l | grep sogou | grep -q ii; then
-		wget https://pinyin.sogou.com/linux/download.php?f=linux&bit=64 -O /tmp/sogoupinyin.deb
-		sudo apt install -y /tmp/sogoupinyin.deb
-		rm /tmp/sogoupinyin.deb
+	if dpkg -l sogoupinyin | grep -q ii; then
+		echo "Sogou Pinyin has been installed already."
+		return
 	fi
+
+	wget https://pinyin.sogou.com/linux/download.php?f=linux&bit=64 -O /tmp/sogoupinyin.deb
+	sudo apt install -y /tmp/sogoupinyin.deb
+	rm /tmp/sogoupinyin.deb
 }
 
 ## 安装 iBus 输入法
@@ -188,11 +200,14 @@ function install_wire() {
 # keeweb
 function install_keeweb() {
 	KEEWEB_VERSION=1.5.6
-	if ! dpkg -l | grep keeweb | grep -q ii; then
-		wget https://github.com/keeweb/keeweb/releases/download/v$KEEWEB_VERSION/KeeWeb-$KEEWEB_VERSION.linux.x64.deb -O /tmp/keeweb.deb
-		sudo apt install -y /tmp/keeweb.deb
-		rm /tmp/keeweb.deb
+	if dpkg -l keeweb-desktop | grep -q ii; then
+		echo "KeeWeb has been installed already."
+		return
 	fi
+
+	wget https://github.com/keeweb/keeweb/releases/download/v$KEEWEB_VERSION/KeeWeb-$KEEWEB_VERSION.linux.x64.deb -O /tmp/keeweb.deb
+	sudo apt install -y /tmp/keeweb.deb
+	rm /tmp/keeweb.deb
 }
 
 # Snap apps
@@ -203,10 +218,22 @@ function install_snaps() {
 }
 
 function install_vscode() {
-	sudo snap install --classic vscode
+	if dpkg -l code | grep -q ii; then
+		echo "VSCode has been installed already."
+		return
+	fi
 
+	# Prepare apt source
+	curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null
+	echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" | sudo tee /etc/apt/sources.list.d/vscode.list
+
+	# Install
+	sudo apt-get update
+	sudo apt-get install -y code
+
+	# Extensions
 	case $1 in
-		with_ext)
+		with_extensions)
 			code --install-extension ms-vscode.cpptools
 			code --install-extension formulahendry.code-runner
 			code --install-extension anseki.vscode-color
@@ -225,7 +252,7 @@ function install_vscode() {
 			code --install-extension itryapitsin.scala
 			code --install-extension marcostazi.vs-code-vagrantfile
 			code --install-extension robertohuertasm.vscode-icons
-			code --install-extension WakaTime.vscode-wakatime
+			# code --install-extension WakaTime.vscode-wakatime
 			code --install-extension dzannotti.vscode-babel-coloring
 			code --install-extension HookyQR.beautify
 			code --install-extension msjsdiag.debugger-for-chrome
@@ -236,24 +263,22 @@ function install_vscode() {
 # Remove Unwanted
 function remove_unwanted() {
 	# Remove apport and games
-	local pkgs=( apport )
+	sudo apt-get purge -y apport
 
 	# Games
-	pkgs+=( game-sudoku game-mahjongg game-mines aisleriot )
+	sudo apt-get purge -y game-sudoku game-mahjongg game-mines aisleriot
 
 	# Remove Amazon adware
 	case $(distro_version) in
-		artful)   pkgs+=( ubuntu-web-launchers ) ;;
-		*)        pkgs+=( unity-webapps-common ) ;;
+		artful)   sudo apt-get purge -y ubuntu-web-launchers ;;
+		*)        sudo apt-get purge -y unity-webapps-common ;;
 	esac
-
-	# Remove
-	sudo apt-get purge -y "${pkgs[@]}"
 }
 
 # oh-my-zsh
 function install_oh_my_zsh() {
 	sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+	chsh -s /bin/zsh
 }
 
 function install_bin() {
@@ -264,6 +289,7 @@ function install_bin() {
 	chmod u+x ~/bin/*
 }
 
+# Add favorite apps to the dock
 function add_favorite_apps() {
 	local current=$(gsettings get org.gnome.shell favorite-apps)
 	if [[ $current == *"terminator"* ]]; then
@@ -275,6 +301,7 @@ function add_favorite_apps() {
 			keeweb.desktop \
 			zeal-casept_zeal.desktop \
 			wire-desktop.desktop \
+			code.desktop \
 			)
 		local value=$(echo ${current%]*} $(printf ", '%s'" "${favs[@]}") "]")
 		gsettings set org.gnome.shell favorite-apps "$value"
@@ -301,7 +328,7 @@ function main() {
 	install_wire
 	install_keeweb
 	install_snaps
-	install_vscode
+	install_vscode with_extensions
 	remove_unwanted
 	install_bin
 	add_favorite_apps
