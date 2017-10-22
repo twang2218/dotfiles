@@ -9,6 +9,13 @@ user_email="twang2218@gmail.com"
 
 export DEBIAN_FRONTEND=noninteractive
 
+# Utils
+
+# get distro version
+function distro_version() {
+	lsb_release -s -c
+}
+
 # Update
 function update_apt() {
 	sudo apt-get update
@@ -20,11 +27,6 @@ function config_apt() {
 APT::Get::Install-Recommends "false";
 APT::Get::Install-Suggests "false";
 EOF
-}
-
-# get distro version
-function distro_version() {
-	lsb_release -s -c
 }
 
 # Common Tools
@@ -233,13 +235,20 @@ function install_vscode() {
 
 # Remove Unwanted
 function remove_unwanted() {
-	# Remove apport
-	sudo apt-get remove -y \
-		apport \
-		gnome-sudoku \
-		gnome-mahjongg \
-		aisleriot \
-		gnome-mines
+	# Remove apport and games
+	local pkgs=( apport )
+
+	# Games
+	pkgs+=( game-sudoku game-mahjongg game-mines aisleriot )
+
+	# Remove Amazon adware
+	case $(distro_version) in
+		artful)   pkgs+=( ubuntu-web-launchers ) ;;
+		*)        pkgs+=( unity-webapps-common ) ;;
+	esac
+
+	# Remove
+	sudo apt-get purge -y "${pkgs[@]}"
 }
 
 # oh-my-zsh
@@ -253,6 +262,29 @@ function install_bin() {
 	wget $BASEURL/bin/qq -O ~/bin/qq
 
 	chmod u+x ~/bin/*
+}
+
+function add_favorite_apps() {
+	local current=$(gsettings get org.gnome.shell favorite-apps)
+	if [[ $current == *"terminator"* ]]; then
+		echo "Already added my favorite apps"
+	else
+		# Append following apps to the favorite apps
+		local favs=( \
+			terminator.desktop \
+			keeweb.desktop \
+			zeal-casept_zeal.desktop \
+			wire-desktop.desktop \
+			)
+		local value=$(echo ${current%]*} $(printf ", '%s'" "${favs[@]}") "]")
+		gsettings set org.gnome.shell favorite-apps "$value"
+	fi
+	# print the favoite apps for sure
+	gsettings get org.gnome.shell favorite-apps
+}
+
+function prepare_lab() {
+	mkdir -p ~/lab/go
 }
 
 function main() {
@@ -272,6 +304,8 @@ function main() {
 	install_vscode
 	remove_unwanted
 	install_bin
+	add_favorite_apps
+	prepare_lab
 	install_oh_my_zsh
 }
 
