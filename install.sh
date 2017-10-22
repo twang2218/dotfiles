@@ -217,11 +217,18 @@ function install_keeweb() {
 	rm /tmp/keeweb.deb
 }
 
+# Chrome
+function install_chrome() {
+	echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+	curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+	sudo apt-get update
+	sudo apt-get install -y google-chrome-stable
+}
+
 # Snap apps
 function install_snaps() {
 	sudo snap install zeal-casept
 	sudo snap install --classic go
-	sudo snap install chromium
 }
 
 function install_vscode() {
@@ -309,6 +316,7 @@ function add_favorite_apps() {
 			zeal-casept_zeal.desktop \
 			wire-desktop.desktop \
 			code.desktop \
+			google-chrome.desktop \
 			)
 		local value=$(echo ${current%]*} $(printf ", '%s'" "${favs[@]}") "]")
 		gsettings set org.gnome.shell favorite-apps "$value"
@@ -334,8 +342,9 @@ function main() {
 	install_ibus
 	install_wire
 	install_keeweb
-	install_snaps
+	install_chrome
 	install_vscode with_extensions
+	install_snaps
 	remove_unwanted
 	install_bin
 	add_favorite_apps
