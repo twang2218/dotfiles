@@ -38,15 +38,12 @@ function install_common() {
 		jq \
 		tree \
 		tzdata \
-		strace
-	sudo apt-get install -y \
+		strace \
 		build-essential \
 		neofetch \
-		lsb-release
-	sudo apt-get install -y \
+		lsb-release \
 		gddrescue \
-		terminator \
-		smartmontools
+		terminator
 }
 
 # Graphics Driver
@@ -96,6 +93,9 @@ function install_docker() {
 function install_virtualbox() {
 	case $(distro_version) in
 		artful)
+						# Accept Virtualbox PUEL
+						echo virtualbox-ext-pack virtualbox-ext-pack/license select true | sudo debconf-set-selections
+						# Install virtualbox from Ubuntu source
 						sudo apt-get install -y \
 							virtualbox \
 							virtualbox-dkms \
@@ -133,7 +133,7 @@ function install_adapta() {
 	fi
 
 	# GNOME Tweak Tools
-	sudo apt-get install -y gnome-shell-extensions gnome-tweak-tool
+	sudo apt-get install -y gnome-tweak-tool
 }
 
 # 中文输入法
@@ -239,8 +239,7 @@ function remove_unwanted() {
 		gnome-sudoku \
 		gnome-mahjongg \
 		aisleriot \
-		gnome-mines \
-
+		gnome-mines
 }
 
 # oh-my-zsh
