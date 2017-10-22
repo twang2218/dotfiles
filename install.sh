@@ -162,9 +162,11 @@ EOF
 function install_sogou() {
 	install_fcitx
 
-	wget https://pinyin.sogou.com/linux/download.php?f=linux&bit=64 -O /tmp/sogoupinyin.deb
-	sudo apt install -y /tmp/sogoupinyin.deb
-	rm /tmp/sogoupinyin.deb
+	if ! dpkg -l | grep sogou | grep -q ii; then
+		wget https://pinyin.sogou.com/linux/download.php?f=linux&bit=64 -O /tmp/sogoupinyin.deb
+		sudo apt install -y /tmp/sogoupinyin.deb
+		rm /tmp/sogoupinyin.deb
+	fi
 }
 
 ## 安装 iBus 输入法
@@ -184,9 +186,11 @@ function install_wire() {
 # keeweb
 function install_keeweb() {
 	KEEWEB_VERSION=1.5.6
-	wget https://github.com/keeweb/keeweb/releases/download/v$KEEWEB_VERSION/KeeWeb-$KEEWEB_VERSION.linux.x64.deb -O /tmp/keeweb.deb
-	sudo apt install -y /tmp/keeweb.deb
-	rm /tmp/keeweb.deb
+	if ! dpkg -l | grep keeweb | grep -q ii; then
+		wget https://github.com/keeweb/keeweb/releases/download/v$KEEWEB_VERSION/KeeWeb-$KEEWEB_VERSION.linux.x64.deb -O /tmp/keeweb.deb
+		sudo apt install -y /tmp/keeweb.deb
+		rm /tmp/keeweb.deb
+	fi
 }
 
 # Snap apps
