@@ -35,6 +35,8 @@ function install_common() {
 		apt-transport-https \
 		curl \
 		zsh \
+		zsh-antigen \
+		zsh-syntax-highlighting \
 		pv \
 		git \
 		jq \
@@ -291,8 +293,93 @@ function remove_unwanted() {
 
 # oh-my-zsh
 function install_oh_my_zsh() {
-	sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-	chsh -s /bin/zsh
+	bash -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+	chsh -s $(which zsh)
+
+	# Setup ZSH
+	local ZSH_CUSTOM=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
+
+	mkdir -p $ZSH_CUSTOM/themes
+	mkdir -p $ZSH_CUSTOM/plugins
+
+	## Theme
+	if [ ! -f $ZSH_CUSTOM/zeta_theme.zsh ]; then
+		wget https://raw.githubusercontent.com/skylerlee/zeta-zsh-theme/master/zeta.zsh-theme -O $ZSH_CUSTOM/themes/zeta.zsh-theme
+		echo 'ZSH_THEME="zeta"' > $ZSH_CUSTOM/zeta_theme.zsh
+	fi
+
+	## Alias
+	if [ ! -f $ZSH_CUSTOM/alias.zsh ]; then
+		cat <<EOF | tee $ZSH_CUSTOM/alias.zsh
+# My Alias
+
+alias ll='ls -al'
+alias brewup='brew update && brew upgrade && brew cleanup; brew doctor; brew cask outdated'
+alias dsh='docker run -it --rm --privileged --pid=host debian nsenter -t 1 -m -u -n -i sh'
+alias docker_stats='docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}"'
+
+EOF
+	fi
+
+	## locales
+	if [ ! -f $ZSH_CUSTOM/locales.zsh ]; then
+		echo <<EOF | tee $ZSH_CUSTOM/locales.zsh
+export LANG=en_AU.UTF-8
+export LC_ALL=en_AU.UTF-8
+EOF
+	fi
+
+	## golang
+	if [ ! -f $ZSH_CUSTOM/golang.zsh ]; then
+		mkdir -p ~/lab/go
+		echo <<EOF | tee $ZSH_CUSTOM/golang.zsh
+export GOPATH=$HOME/lab/go
+export GOBIN=$GOPATH/bin
+export PATH=$PATH:$GOBIN
+EOF
+	fi
+
+	## path
+	if [ ! -f $ZSH_CUSTOM/path.zsh ]; then
+		mkdir -p ~/bin
+		echo "export PATH=$PATH:$HOME/bin:$HOME/Dropbox/bin" | tee $ZSH_CUSTOM/path.zsh
+	fi
+
+	## zsh-antigen
+	if [ ! -f $ZSH_CUSTOM/antigen.zsh ]; then
+		cat <<EOF | tee $ZSH_CUSTOM/antigen.zsh
+source /usr/share/zsh-antigen/antigen.zsh
+
+antigen bundle git
+antigen bundle golang
+antigen bundle heroku
+antigen bundle command-not-found
+antigen bundle gpg-agent
+antigen bundle docker
+antigen bundle docker-compose
+
+if [ "$(uname)" = "Darwin" ]; then
+	antigen bundle brew
+	antigen bundle osx
+fi
+
+if [ "$(lsb_release -si)" = "Ubuntu" ]; then
+	antigen bundle ubuntu
+fi
+
+antigen bundle wbinglee/zsh-wakatime
+antigen bundle zsh-users/zsh-autosuggestions
+
+antigen apply
+
+EOF
+	fi
+
+	## zsh-syntax-highlighting
+	if ! grep -q "zsh-syntax-highlighting.zsh"; then
+		# this should be the last line of `.zshrc`
+		echo "source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" | tee -a ~/.zshrc
+	fi
 }
 
 function install_bin() {
