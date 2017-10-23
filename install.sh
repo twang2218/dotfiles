@@ -289,6 +289,9 @@ function remove_unwanted() {
 		artful)   sudo apt-get purge -y ubuntu-web-launchers ;;
 		*)        sudo apt-get purge -y unity-webapps-common ;;
 	esac
+
+	# Remove Firefox
+	sudo apt-get purge -y firefox
 }
 
 # oh-my-zsh
@@ -398,14 +401,16 @@ function add_favorite_apps() {
 	else
 		# Append following apps to the favorite apps
 		local favs=( \
+			google-chrome.desktop \
+			code.desktop \
 			terminator.desktop \
+			yelp.desktop \
 			keeweb.desktop \
 			zeal-casept_zeal.desktop \
 			wire-desktop.desktop \
-			code.desktop \
-			google-chrome.desktop \
-			)
-		local value=$(echo ${current%]*} $(printf ", '%s'" "${favs[@]}") "]")
+		)
+		# We don't preserve the default apps but Nautilus
+		local value=$(echo "['org.gnome.Nautilus.desktop'" $(printf ", '%s'" "${favs[@]}") "]")
 		gsettings set org.gnome.shell favorite-apps "$value"
 	fi
 	# print the favoite apps for sure
