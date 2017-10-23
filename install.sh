@@ -389,6 +389,7 @@ function install_bin() {
 	BASEURL=https://coding.net/u/twang2218/p/dotfiles/git/raw/master
 	mkdir -p ~/bin
 	wget $BASEURL/bin/qq -O ~/bin/qq
+	wget $BASEURL/bin/ss -O ~/bin/ss
 
 	chmod u+x ~/bin/*
 }
