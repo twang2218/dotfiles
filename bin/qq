@@ -21,6 +21,9 @@ IM=${GTK_IM_MODULE:-ibus}
 
 function stop() {
     if [ -n "$(docker ps -a -f "name=qq" -q)" ]; then
+        # Ask qq to stop first
+        docker stop qq
+        # Then kill it later.
         docker rm -f qq
     fi
 }
