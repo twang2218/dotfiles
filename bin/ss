@@ -1,5 +1,8 @@
 #!/bin/bash
 # filename: ss
+#
+# 短连接地址：http://t.cn/RWiJf2w
+#
 # set -e
 #
 # * 启动:   ./ss start

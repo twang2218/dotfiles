@@ -1,6 +1,8 @@
 #!/bin/bash
 # qq.sh
 #
+# 短连接地址： http://t.cn/RWixwzr
+#
 # 运行 qq： ./qq.sh start
 # 结束 qq： ./qq.sh stop
 #

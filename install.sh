@@ -1,8 +1,7 @@
 #!/bin/bash
-
-# wget http://tinyurl.com/y94cjsmh -O- | bash
-# or
-# bash -c "$(wget http://tinyurl.com/y94cjsmh -O -)"
+#
+# wget http://t.cn/RWiJZda -O- | bash
+#
 
 user_name="Tao Wang"
 user_email="twang2218@gmail.com"
