@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# wget http://t.cn/RWiJZda -O- | bash
+# wget http://t.cn/RWiJZda -O- | /usr/bin/time -v bash
 #
 
 user_name="Tao Wang"
@@ -11,9 +11,7 @@ export DEBIAN_FRONTEND=noninteractive
 # Utils
 
 # get distro version
-function distro_version() {
-	lsb_release -s -c
-}
+distro_version=$(lsb_release -s -c)
 
 # Update
 function update_apt() {
@@ -43,10 +41,14 @@ function install_common() {
 		tzdata \
 		strace \
 		build-essential \
-		neofetch \
 		lsb-release \
 		gddrescue \
 		terminator
+
+	if [ "artful" = "$distro_version" ]; then
+		sudo apt-get install -y \
+			neofetch
+	fi
 }
 
 # Graphics Driver
@@ -59,12 +61,12 @@ function install_graphics() {
 
 # Kernel
 function install_kernel() {
-	case $(distro_version) in
+	case $distro_version in
 		xenial)
-						sudo apt-get install -y \
-							linux-generic-hwe-16.04 \
-							xserver-xorg-hwe-16.04
-							;;
+					sudo apt-get install -y \
+						linux-generic-hwe-16.04 \
+						xserver-xorg-hwe-16.04
+						;;
 		*)			echo "Usage: $0 (xenial)" ;;
 	esac
 }
@@ -84,7 +86,7 @@ function install_docker() {
 	sudo adduser $USER docker
 	newgrp docker
 
-	if [ "artful" == "$(distro_version)" ]; then
+	if [ "artful" = "$distro_version" ]; then
 		sudo apt-get install -y docker.io
 	else
 		#	curl -fsSL https://get.docker.com/ | sh -s -- --mirror Aliyun
@@ -94,23 +96,24 @@ function install_docker() {
 
 # Virtualbox
 function install_virtualbox() {
-	case $(distro_version) in
+	case $distro_version in
 		artful)
-						# Accept Virtualbox PUEL
-						echo virtualbox-ext-pack virtualbox-ext-pack/license select true | sudo debconf-set-selections
-						# Install virtualbox from Ubuntu source
-						sudo apt-get install -y \
-							virtualbox \
-							virtualbox-dkms \
-							virtualbox-ext-pack \
-							virtualbox-guest-additions-iso
-						;;
+				# Accept Virtualbox PUEL
+				echo virtualbox-ext-pack virtualbox-ext-pack/license select true | sudo debconf-set-selections
+				# Install virtualbox from Ubuntu source
+				sudo apt-get install -y \
+					virtualbox \
+					virtualbox-dkms \
+					virtualbox-ext-pack \
+					virtualbox-guest-additions-iso
+				;;
 		*)
-						echo "deb http://download.virtualbox.org/virtualbox/debian $distro_version contrib" \
-							| sudo tee /etc/apt/sources.list.d/virtualbox.list
-						sudo apt-get install -y \
-							virtualbox-5.2
-						;;
+				echo "deb http://download.virtualbox.org/virtualbox/debian $distro_version contrib" \
+					| sudo tee /etc/apt/sources.list.d/virtualbox.list
+				curl -fsSL http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc | sudo apt-key add -
+				sudo apt-get update
+				sudo apt-get install -y virtualbox-5.2
+				;;
 	esac
 }
 
@@ -122,10 +125,10 @@ function install_adapta() {
 	sudo apt-get install -y adapta-gtk-theme
 
 	# Setting the theme
-	gsettings set org.gnome.desktop.interface gtk-theme "Adapta-Nokto-Eta"
+	gsettings set org.gnome.desktop.interface gtk-theme "Adapta-Nokto"
 	gsettings set org.gnome.desktop.interface cursor-theme "DMZ-Black"
 
-	if [ "artful" != "$(distro_version)" ]; then
+	if [ "artful" != "$distro_version" ]; then
 		# Paper Icon
 		sudo add-apt-repository -y ppa:snwh/pulp
 		sudo apt-get update
@@ -133,6 +136,8 @@ function install_adapta() {
 			paper-icon-theme \
 			paper-gtk-theme \
 			paper-cursor-theme
+		gsettings set org.gnome.desktop.interface cursor-theme "Paper"
+		gsettings set org.gnome.desktop.interface icon-theme "Paper"
 	fi
 
 	# GNOME Tweak Tools
@@ -199,7 +204,7 @@ function install_ibus() {
 
 # Wire
 function install_wire() {
-	wget -q https://wire-app.wire.com/linux/releases.key -O- | sudo apt-key add -
+	curl -fsSL https://wire-app.wire.com/linux/releases.key | sudo apt-key add -
 	echo "deb https://wire-app.wire.com/linux/debian stable main" | sudo tee /etc/apt/sources.list.d/wire-desktop.list
 	sudo apt-get update
 	sudo apt-get install -y wire-desktop
@@ -281,16 +286,32 @@ function remove_unwanted() {
 	sudo apt-get purge -y apport
 
 	# Games
-	sudo apt-get purge -y game-sudoku game-mahjongg game-mines aisleriot
+	sudo apt-get purge -y game-sudoku
+	sudo apt-get purge -y game-mahjongg
+	sudo apt-get purge -y game-mines
+	sudo apt-get purge -y aisleriot
 
 	# Remove Amazon adware
-	case $(distro_version) in
+	case $distro_version in
 		artful)   sudo apt-get purge -y ubuntu-web-launchers ;;
 		*)        sudo apt-get purge -y unity-webapps-common ;;
 	esac
 
 	# Remove Firefox
 	sudo apt-get purge -y firefox
+
+	case $distro_version in
+		xenial)
+			sudo apt-get purge -y fcitx
+			sudo apt-get purge -y empathy
+			sudo apt-get purge -y evolution
+			sudo apt-get purge -y transmission-gtk
+			sudo apt-get purge -y brasero
+			;;
+	esac
+
+	# autoremove
+	sudo apt-get autoremove -y
 }
 
 # oh-my-zsh
@@ -425,7 +446,7 @@ function main() {
 	update_apt
 	config_apt
 	install_common
-	install_graphics intel
+	# install_graphics intel
 	install_kernel
 	install_git
 	install_docker
