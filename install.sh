@@ -182,6 +182,8 @@ QT_IM_MODULE=fcitx
 XMODIFIERS=@im=fcitx
 EOF
 
+	# 这里我们只需要 fcitx，所以删除所有 ibus 的包
+	sudo apt-get purge -y "ibus*"
 }
 
 ## 安装搜狗输入法
@@ -206,6 +208,8 @@ function install_ibus() {
 	gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us'), ('ibus', 'pinyin')]"
 	# 删除 sun pinyin
 	sudo apt-get purge -y ibus-sunpinyin
+	# 我们只需要 ibus，所以删除所有 fcitx 相关的包。
+	sudo apt-get purge -y "fcitx*"
 }
 
 # Wire
@@ -307,8 +311,6 @@ function remove_unwanted() {
 		xenial)
 			# Amazon adware
 			sudo apt-get purge -y unity-webapps-common
-			# We don't want fcitx, unless you want sogou im.
-			sudo apt-get purge -y fcitx*
 			# Other not used apps
 			sudo apt-get purge -y empathy
 			sudo apt-get purge -y evolution
@@ -464,6 +466,7 @@ function main() {
 	install_virtualbox
 	install_adapta
 	install_ibus
+	# install_sogou
 	install_wire
 	install_keeweb
 	install_chrome
