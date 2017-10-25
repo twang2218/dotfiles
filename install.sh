@@ -87,6 +87,11 @@ function install_git() {
 
 # Docker
 function install_docker() {
+	if dpkg -l | grep docker | grep -q ii; then
+		echo "Docker has been installed already."
+		return
+	fi
+
 	sudo addgroup --system docker
 	sudo adduser $USER docker
 	newgrp docker
@@ -241,12 +246,19 @@ function install_chrome() {
 	sudo apt-get install -y google-chrome-stable
 }
 
-# Snap apps
-function install_snaps() {
-	sudo snap install zeal-casept
-	sudo snap install --classic go
+# Zeal
+function install_zeal() {
+	if dpkg -l zeal | grep -q ii; then
+		echo "Zeal has been installed already."
+		return
+	fi
+
+	sudo add-apt-repository ppa:zeal-developers/ppa
+	sudo apt-get update
+	sudo apt-get install -y zeal
 }
 
+# Visual Studio Code
 function install_vscode() {
 	if dpkg -l code | grep -q ii; then
 		echo "VSCode has been installed already."
@@ -289,6 +301,11 @@ function install_vscode() {
 			code --install-extension ms-vscode.atom-keybindings
 			;;
 	esac
+}
+
+# Snap apps
+function install_snaps() {
+	sudo snap install --classic go
 }
 
 # Remove Unwanted
@@ -441,7 +458,7 @@ function add_favorite_apps() {
 			terminator.desktop \
 			yelp.desktop \
 			keeweb.desktop \
-			zeal-casept_zeal.desktop \
+			zeal.desktop \
 			wire-desktop.desktop \
 		)
 		# We don't preserve the default apps but Nautilus
@@ -481,6 +498,7 @@ function main() {
 	install_keeweb
 	install_chrome
 	install_vscode with_extensions
+	install_zeal
 	install_snaps
 	remove_unwanted
 	install_bin
