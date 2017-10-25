@@ -45,29 +45,34 @@ function install_common() {
 		gddrescue \
 		terminator
 
-	if [ "artful" = "$distro_version" ]; then
-		sudo apt-get install -y \
-			neofetch
-	fi
+	case "$distro_version" in
+		xenial)
+			# gnupg 1 cannot fetch key from HTTPS, so we need gnupg-curl
+			sudo apt-get install -y gnupg-curl
+			;;
+		artful)
+			# It's good to have neofetch for fun, but it's only available since 17.04
+			sudo apt-get install -y neofetch
+			;;
+	esac
 }
 
 # Graphics Driver
 function install_graphics() {
-	case $1 in
+	case "$1" in
 		intel)	sudo apt-get install -y xserver-xorg-video-intel	;;
-		*)			echo "Usage: $0 (intel)"	;;
 	esac
 }
 
 # Kernel
 function install_kernel() {
-	case $distro_version in
+	case "$distro_version" in
 		xenial)
-					sudo apt-get install -y \
-						linux-generic-hwe-16.04 \
-						xserver-xorg-hwe-16.04
-						;;
-		*)			echo "Usage: $0 (xenial)" ;;
+			# Let's use HWE kernel, so we will have 4.10 on Ubuntu 16.04
+			sudo apt-get install -y \
+				linux-generic-hwe-16.04 \
+				xserver-xorg-hwe-16.04
+				;;
 	esac
 }
 
@@ -86,34 +91,40 @@ function install_docker() {
 	sudo adduser $USER docker
 	newgrp docker
 
-	if [ "artful" = "$distro_version" ]; then
-		sudo apt-get install -y docker.io
-	else
-		#	curl -fsSL https://get.docker.com/ | sh -s -- --mirror Aliyun
-		curl -fsSL https://get.docker.com/ | sh
-	fi
+	case "$distro_version" in
+		artful)
+			# Ubuntu 17.10 is not supported by Docker CE
+			# So use docker.io (1.13) instead.
+			sudo apt-get install -y docker.io
+			;;
+		*)
+			#	curl -fsSL https://get.docker.com/ | sh -s -- --mirror Aliyun
+			curl -fsSL https://get.docker.com/ | sh
+			;;
+	esac
 }
 
 # Virtualbox
 function install_virtualbox() {
-	case $distro_version in
+	case "$distro_version" in
 		artful)
-				# Accept Virtualbox PUEL
-				echo virtualbox-ext-pack virtualbox-ext-pack/license select true | sudo debconf-set-selections
-				# Install virtualbox from Ubuntu source
-				sudo apt-get install -y \
-					virtualbox \
-					virtualbox-dkms \
-					virtualbox-ext-pack \
-					virtualbox-guest-additions-iso
-				;;
+			# Ubuntu 17.10 is not supported by Virtualbox Official repo yet.
+			# Accept Virtualbox PUEL
+			echo virtualbox-ext-pack virtualbox-ext-pack/license select true | sudo debconf-set-selections
+			# Install virtualbox from Ubuntu source
+			sudo apt-get install -y \
+				virtualbox \
+				virtualbox-dkms \
+				virtualbox-ext-pack \
+				virtualbox-guest-additions-iso
+			;;
 		*)
-				echo "deb http://download.virtualbox.org/virtualbox/debian $distro_version contrib" \
-					| sudo tee /etc/apt/sources.list.d/virtualbox.list
-				curl -fsSL http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc | sudo apt-key add -
-				sudo apt-get update
-				sudo apt-get install -y virtualbox-5.2
-				;;
+			echo "deb http://download.virtualbox.org/virtualbox/debian $distro_version contrib" \
+				| sudo tee /etc/apt/sources.list.d/virtualbox.list
+			sudo apt-key adv --fetch-keys http://download.virtualbox.org/virtualbox/debian/oracle_vbox_2016.asc
+			sudo apt-get update
+			sudo apt-get install -y virtualbox-5.2
+			;;
 	esac
 }
 
@@ -128,17 +139,14 @@ function install_adapta() {
 	gsettings set org.gnome.desktop.interface gtk-theme "Adapta-Nokto"
 	gsettings set org.gnome.desktop.interface cursor-theme "DMZ-Black"
 
-	if [ "artful" != "$distro_version" ]; then
-		# Paper Icon
-		sudo add-apt-repository -y ppa:snwh/pulp
-		sudo apt-get update
-		sudo apt-get install -y \
-			paper-icon-theme \
-			paper-gtk-theme \
-			paper-cursor-theme
-		gsettings set org.gnome.desktop.interface cursor-theme "Paper"
-		gsettings set org.gnome.desktop.interface icon-theme "Paper"
-	fi
+	# Paper Icon
+	sudo add-apt-repository -y ppa:snwh/pulp
+	sudo apt-get update
+	sudo apt-get install -y \
+		paper-icon-theme \
+		paper-cursor-theme
+	gsettings set org.gnome.desktop.interface cursor-theme "Paper"
+	gsettings set org.gnome.desktop.interface icon-theme "Paper"
 
 	# GNOME Tweak Tools
 	sudo apt-get install -y gnome-tweak-tool
@@ -147,6 +155,7 @@ function install_adapta() {
 # 中文输入法
 ## 安装 fcitx
 function install_fcitx() {
+	# Wayland is not supported by fcitx yet, so don't use it on 17.10+
 	if dpkg -l fcitx | grep -q ii; then
 		echo "FCITX has been installed already."
 		return
@@ -193,19 +202,16 @@ function install_sogou() {
 function install_ibus() {
 	# 安装 Pinyin 输入法
 	sudo apt-get install -y ibus-pinyin
-	# 替换 sunpinyin 输入法
-	local old_sources="$(gsettings get org.gnome.desktop.input-sources sources)"
-	local new_sources="$(echo $old_sources | sed -s 's/sunpinyin/pinyin/g')"
-	gsettings set org.gnome.desktop.input-sources sources "$new_sources"
-	echo "New IM Sources: $new_sources"
+	# 指定 pinyin 输入法
+	gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us'), ('ibus', 'pinyin')]"
 	# 删除 sun pinyin
 	sudo apt-get purge -y ibus-sunpinyin
 }
 
 # Wire
 function install_wire() {
-	curl -fsSL https://wire-app.wire.com/linux/releases.key | sudo apt-key add -
 	echo "deb https://wire-app.wire.com/linux/debian stable main" | sudo tee /etc/apt/sources.list.d/wire-desktop.list
+	sudo apt-key adv --fetch-keys https://wire-app.wire.com/linux/releases.key
 	sudo apt-get update
 	sudo apt-get install -y wire-desktop
 }
@@ -226,7 +232,7 @@ function install_keeweb() {
 # Chrome
 function install_chrome() {
 	echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-	curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+	sudo apt-key adv --fetch-keys https://dl.google.com/linux/linux_signing_key.pub
 	sudo apt-get update
 	sudo apt-get install -y google-chrome-stable
 }
@@ -244,8 +250,8 @@ function install_vscode() {
 	fi
 
 	# Prepare apt source
-	curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null
 	echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" | sudo tee /etc/apt/sources.list.d/vscode.list
+	sudo apt-key adv --fetch-keys https://packages.microsoft.com/keys/microsoft.asc
 
 	# Install
 	sudo apt-get update
@@ -286,27 +292,31 @@ function remove_unwanted() {
 	sudo apt-get purge -y apport
 
 	# Games
-	sudo apt-get purge -y game-sudoku
-	sudo apt-get purge -y game-mahjongg
-	sudo apt-get purge -y game-mines
+	sudo apt-get purge -y gnome-sudoku
+	sudo apt-get purge -y gnome-mahjongg
+	sudo apt-get purge -y gnome-mines
 	sudo apt-get purge -y aisleriot
 
-	# Remove Amazon adware
-	case $distro_version in
-		artful)   sudo apt-get purge -y ubuntu-web-launchers ;;
-		*)        sudo apt-get purge -y unity-webapps-common ;;
-	esac
-
-	# Remove Firefox
+	# Firefox
 	sudo apt-get purge -y firefox
 
-	case $distro_version in
+	# Transmission
+	sudo apt-get purge -y transmission-gtk
+
+	case "$distro_version" in
 		xenial)
-			sudo apt-get purge -y fcitx
+			# Amazon adware
+			sudo apt-get purge -y unity-webapps-common
+			# We don't want fcitx, unless you want sogou im.
+			sudo apt-get purge -y fcitx*
+			# Other not used apps
 			sudo apt-get purge -y empathy
 			sudo apt-get purge -y evolution
-			sudo apt-get purge -y transmission-gtk
 			sudo apt-get purge -y brasero
+			;;
+		artful)
+			# Amazon adware
+			sudo apt-get purge -y ubuntu-web-launchers
 			;;
 	esac
 
@@ -317,7 +327,6 @@ function remove_unwanted() {
 # oh-my-zsh
 function install_oh_my_zsh() {
 	bash -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-	chsh -s $(which zsh)
 
 	# Setup ZSH
 	local ZSH_CUSTOM=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
@@ -347,8 +356,8 @@ EOF
 	## locales
 	if [ ! -f $ZSH_CUSTOM/locales.zsh ]; then
 		echo <<EOF | tee $ZSH_CUSTOM/locales.zsh
-export LANG=en_AU.UTF-8
-export LC_ALL=en_AU.UTF-8
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 EOF
 	fi
 
@@ -403,6 +412,8 @@ EOF
 		# this should be the last line of `.zshrc`
 		echo "source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" | tee -a ~/.zshrc
 	fi
+
+	echo "Please run: chsh -s $(which zsh)"
 }
 
 function install_bin() {
