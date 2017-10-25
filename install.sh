@@ -195,7 +195,7 @@ function install_sogou() {
 		return
 	fi
 
-	wget https://pinyin.sogou.com/linux/download.php?f=linux&bit=64 -O /tmp/sogoupinyin.deb
+	wget "https://pinyin.sogou.com/linux/download.php?f=linux&bit=64" -O /tmp/sogoupinyin.deb
 	sudo apt install -y /tmp/sogoupinyin.deb
 	rm /tmp/sogoupinyin.deb
 }
@@ -277,15 +277,16 @@ function install_vscode() {
 			code --install-extension shd101wyy.markdown-preview-enhanced
 			code --install-extension mdickin.markdown-shortcuts
 			code --install-extension DavidAnson.vscode-markdownlint
+			# code --install-extension robertohuertasm.vscode-icons
 			code --install-extension PKief.material-icon-theme
 			code --install-extension Ikuyadeu.r
 			code --install-extension itryapitsin.scala
 			code --install-extension marcostazi.vs-code-vagrantfile
-			code --install-extension robertohuertasm.vscode-icons
 			# code --install-extension WakaTime.vscode-wakatime
 			code --install-extension dzannotti.vscode-babel-coloring
 			code --install-extension HookyQR.beautify
 			code --install-extension msjsdiag.debugger-for-chrome
+			code --install-extension ms-vscode.atom-keybindings
 			;;
 	esac
 }
@@ -465,8 +466,17 @@ function main() {
 	install_docker
 	install_virtualbox
 	install_adapta
-	install_ibus
-	# install_sogou
+
+	# 输入法选择
+	case "$distro_version" in
+		xenial)
+			install_sogou
+			;;
+		artful)
+			# fcitx 尚不支持 Wayland，所以只可以用 ibus
+			install_ibus
+			;;
+	esac
 	install_wire
 	install_keeweb
 	install_chrome
