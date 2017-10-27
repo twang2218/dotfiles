@@ -126,7 +126,7 @@ function install_virtualbox() {
 		*)
 			echo "deb http://download.virtualbox.org/virtualbox/debian $distro_version contrib" \
 				| sudo tee /etc/apt/sources.list.d/virtualbox.list
-			sudo apt-key adv --fetch-keys http://download.virtualbox.org/virtualbox/debian/oracle_vbox_2016.asc
+			wget -q -O- http://download.virtualbox.org/virtualbox/debian/oracle_vbox_2016.asc | sudo apt-key add
 			sudo apt-get update
 			sudo apt-get install -y virtualbox-5.2
 			;;
@@ -220,7 +220,7 @@ function install_ibus() {
 # Wire
 function install_wire() {
 	echo "deb https://wire-app.wire.com/linux/debian stable main" | sudo tee /etc/apt/sources.list.d/wire-desktop.list
-	sudo apt-key adv --fetch-keys https://wire-app.wire.com/linux/releases.key
+	wget -q -O- https://wire-app.wire.com/linux/releases.key | sudo apt-key add
 	sudo apt-get update
 	sudo apt-get install -y wire-desktop
 }
@@ -241,7 +241,7 @@ function install_keeweb() {
 # Chrome
 function install_chrome() {
 	echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-	sudo apt-key adv --fetch-keys https://dl.google.com/linux/linux_signing_key.pub
+	wget -q -O- https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add
 	sudo apt-get update
 	sudo apt-get install -y google-chrome-stable
 }
@@ -267,7 +267,7 @@ function install_vscode() {
 
 	# Prepare apt source
 	echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" | sudo tee /etc/apt/sources.list.d/vscode.list
-	sudo apt-key adv --fetch-keys https://packages.microsoft.com/keys/microsoft.asc
+	wget -q -O- https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add
 
 	# Install
 	sudo apt-get update
