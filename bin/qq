@@ -49,7 +49,8 @@ function start() {
 command=$1
 shift
 case $command in
-    start)  start ;;
-    stop)   stop ;;
+    start)      start ;;
+    stop)       stop ;;
+    restart)    docker restart qq ;;
     *)      echo "Usage: $0 (start|stop)" ;;
 esac
