@@ -43,6 +43,7 @@ function install_common() {
     bmon \
     iptraf \
     iperf3 \
+    etckeeper \
     gddrescue
 
   case "$distro_version" in
@@ -98,12 +99,13 @@ network:
   renderer: networkd
   ethernets:
     enp1s0:
-      dhcp4: no
-      dhcp6: no
+      dhcp4: false
+      dhcp6: false
       addresses: [10.0.1.250/24]
       gateway4: 10.0.1.1
       nameservers:
         addresses: [8.8.8.8, 8.8.4.4]
+      wakeonlan: true
 EOF
       sudo netplan apply
       ;;
@@ -148,42 +150,42 @@ function install_docker() {
 
 # oh-my-zsh
 function install_oh_my_zsh() {
-	bash -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+  bash -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 
-	# Setup ZSH
-	local ZSH_CUSTOM=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
+  # Setup ZSH
+  local ZSH_CUSTOM=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
 
-	mkdir -p $ZSH_CUSTOM/themes
-	mkdir -p $ZSH_CUSTOM/plugins
+  mkdir -p $ZSH_CUSTOM/themes
+  mkdir -p $ZSH_CUSTOM/plugins
 
-	## Theme
-	if [ ! -f $ZSH_CUSTOM/zeta_theme.zsh ]; then
-		wget https://raw.githubusercontent.com/skylerlee/zeta-zsh-theme/master/zeta.zsh-theme -O $ZSH_CUSTOM/themes/zeta.zsh-theme
-		echo 'ZSH_THEME="zeta"' > $ZSH_CUSTOM/zeta_theme.zsh
-	fi
+  ## Theme
+  if [ ! -f $ZSH_CUSTOM/zeta_theme.zsh ]; then
+    wget https://raw.githubusercontent.com/skylerlee/zeta-zsh-theme/master/zeta.zsh-theme -O $ZSH_CUSTOM/themes/zeta.zsh-theme
+    echo 'ZSH_THEME="zeta"' > $ZSH_CUSTOM/zeta_theme.zsh
+  fi
 
-	## Alias
-	if [ ! -f $ZSH_CUSTOM/alias.zsh ]; then
-		cat <<EOF | tee $ZSH_CUSTOM/alias.zsh
+  ## Alias
+  if [ ! -f $ZSH_CUSTOM/alias.zsh ]; then
+    cat <<EOF | tee $ZSH_CUSTOM/alias.zsh
 # My Alias
 
 alias ll='ls -al'
 alias docker_stats='docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}"'
 
 EOF
-	fi
+  fi
 
-	## locales
-	if [ ! -f $ZSH_CUSTOM/locales.zsh ]; then
-		echo <<EOF | tee $ZSH_CUSTOM/locales.zsh
+  ## locales
+  if [ ! -f $ZSH_CUSTOM/locales.zsh ]; then
+    echo <<EOF | tee $ZSH_CUSTOM/locales.zsh
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 EOF
-	fi
+  fi
 
-	## zsh-antigen
-	if [ ! -f $ZSH_CUSTOM/antigen.zsh ]; then
-		cat <<EOF | tee $ZSH_CUSTOM/antigen.zsh
+  ## zsh-antigen
+  if [ ! -f $ZSH_CUSTOM/antigen.zsh ]; then
+    cat <<EOF | tee $ZSH_CUSTOM/antigen.zsh
 source /usr/share/zsh-antigen/antigen.zsh
 
 antigen bundle git
@@ -197,15 +199,15 @@ antigen bundle zsh-users/zsh-autosuggestions
 antigen apply
 
 EOF
-	fi
+  fi
 
-	## zsh-syntax-highlighting
-	if ! grep -q "zsh-syntax-highlighting.zsh"; then
-		# this should be the last line of `.zshrc`
-		echo "source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" | tee -a ~/.zshrc
-	fi
+  ## zsh-syntax-highlighting
+  if ! grep -q "zsh-syntax-highlighting.zsh"; then
+    # this should be the last line of `.zshrc`
+    echo "source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" | tee -a ~/.zshrc
+  fi
 
-	echo "Please run: chsh -s $(which zsh)"
+  echo "Please run: chsh -s $(which zsh)"
 }
 
 function main() {
