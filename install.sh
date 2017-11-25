@@ -96,17 +96,8 @@ function install_docker() {
 	sudo adduser $USER docker
 	newgrp docker
 
-	case "$distro_version" in
-		artful)
-			# Ubuntu 17.10 is not supported by Docker CE
-			# So use docker.io (1.13) instead.
-			sudo apt-get install -y docker.io
-			;;
-		*)
-			#	curl -fsSL https://get.docker.com/ | sh -s -- --mirror Aliyun
-			curl -fsSL https://get.docker.com/ | sh
-			;;
-	esac
+	# curl -fsSL https://get.docker.com/ | sh -s -- --mirror Aliyun
+	curl -fsSL https://get.docker.com/ | sh
 }
 
 # Virtualbox
@@ -372,6 +363,44 @@ alias docker_stats='docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.Mem
 
 EOF
 	fi
+
+	## Functions
+	if [ ! -f $ZSH_CUSTOM/alias.zsh ]; then
+		cat <<EOF | tee $ZSH_CUSTOM/func.zsh
+# My Functions
+
+function show_certs() {
+  local server=$1
+  if [ -z "$1" ]; then
+    echo "Usage: show_certs www.example.com"
+    return 1
+  fi
+  
+  local port=${2:-443}
+  echo \
+    | openssl s_client \
+      -showcerts \
+      -servername "$server" \
+      -connect "$server:$port" \
+      2>/dev/null \
+    | openssl x509 -inform pem -noout -text
+}
+
+# 寻找最新的40个文件。
+function find_latest() {
+  if [ -z "$1" ]; then
+    echo "Usage: find_latest <directory> [number]
+    return 1
+  fi
+
+  local num=${2:-10}
+
+  find $1 -type f -printf '%T@ %p\n' | sort -n | tail -$num | cut -f2- -d" "
+}
+
+EOF
+	fi
+
 
 	## locales
 	if [ ! -f $ZSH_CUSTOM/locales.zsh ]; then
