@@ -208,6 +208,14 @@ function install_ibus() {
 	sudo apt-get purge -y "fcitx*"
 }
 
+# Dropbox
+function install_dropbox() {
+	sudo apt-key adv --keyserver pgp.mit.edu --recv-keys 5044912E
+	echo "deb http://linux.dropbox.com/ubuntu/ xenial main" | sudo tee /etc/apt/sources.list.d/dropbox.list
+	sudo apt-get update
+	sudo apt-get install -y dropbox python-gpgme
+}
+
 # Wire
 function install_wire() {
 	echo "deb https://wire-app.wire.com/linux/debian stable main" | sudo tee /etc/apt/sources.list.d/wire-desktop.list
@@ -523,6 +531,7 @@ function main() {
 			install_ibus
 			;;
 	esac
+	install_dropbox
 	install_wire
 	install_keeweb
 	install_chrome
