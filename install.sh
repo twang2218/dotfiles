@@ -373,7 +373,7 @@ EOF
 	fi
 
 	## Functions
-	if [ ! -f $ZSH_CUSTOM/alias.zsh ]; then
+	if [ ! -f $ZSH_CUSTOM/func.zsh ]; then
 		cat <<EOF | tee $ZSH_CUSTOM/func.zsh
 # My Functions
 
