@@ -452,9 +452,9 @@ if [ "$(uname)" = "Darwin" ]; then
 	antigen bundle osx
 fi
 
-if [ "$(lsb_release -si)" = "Ubuntu" ]; then
-	antigen bundle ubuntu
-fi
+# if [ "$(lsb_release -si)" = "Ubuntu" ]; then
+# 	antigen bundle ubuntu
+# fi
 
 antigen bundle wbinglee/zsh-wakatime
 antigen bundle zsh-users/zsh-autosuggestions
