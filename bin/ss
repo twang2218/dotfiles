@@ -7,7 +7,7 @@
 #
 #   将该脚本放入 `~/bin/` 目录下，打通路径并赋予可执行权限后即可使用。
 #
-#   $ curl http://t.cn/RWiJf2w -o ~/bin/ss
+#   $ curl -fsSL http://t.cn/RWiJf2w -o ~/bin/ss
 #   $ chmod a+x ~/bin/ss
 #
 # 使用方法：
