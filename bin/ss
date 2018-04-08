@@ -1,5 +1,6 @@
 #!/bin/bash
-# filename: ss
+#
+# 文件名: sss
 #
 # 短连接地址：http://t.cn/RWiJf2w
 #
@@ -7,48 +8,58 @@
 #
 #   将该脚本放入 `~/bin/` 目录下，打通路径并赋予可执行权限后即可使用。
 #
-#   $ curl -fsSL http://t.cn/RWiJf2w -o ~/bin/ss
-#   $ chmod a+x ~/bin/ss
+#   $ curl -fsSL http://t.cn/RWiJf2w -o ~/bin/sss
+#   $ chmod a+x ~/bin/sss
 #
 # 使用方法：
 #
-# 1. 直接在命令行执行 `ss proxy start`；
+# 1. 直接在命令行执行 `sss proxy start`；
 # 2. 在服务建立成功后，在网络设置中，配置Socks代理服务器为 `127.0.0.1:1080` 即可。
-# 3. 命令行如果需要使用代理，只需要执行 `eval $(ss env)`，然后可以用 `curl ip.cn` 来检查当前 IP。
-# 4. 命令行如果不想使用代理，那么执行 `eval $(ss env --unset)`。
-# 5. 彻底停止使用的代理服务器时候，只需要执行 `ss proxy stop`，就会删除远程服务器并且停止本地客户端，然后在网络设置中取消 Socks 代理服务器。
+# 3. 命令行如果需要使用代理，只需要执行 `eval $(sss env)`，然后可以用 `curl ip.cn` 来检查当前 IP。
+# 4. 命令行如果不想使用代理，那么执行 `eval $(sss env --unset)`。
+# 5. 彻底停止使用的代理服务器时候，只需要执行 `sss proxy stop`，就会删除远程服务器并且停止本地客户端，然后在网络设置中取消 Socks 代理服务器。
 #
 # 所支持命令：
 #
-# * 启动代理:   ss proxy start
-# * 停止代理:   ss proxy stop
-# * 代理状态:   ss status
-# * 给命令行加载代理环境变量: eval $(./ss env)
-# * 卸载命令行的代理环境变量: eval $(./ss env --unset)
-# * 配置 DNS:   ss dns start
-# * 删除 DNS:   ss dns stop
-# * 配置本地 hosts 文件：  ss host start
-# * 删除本地 hosts 文件：  ss host stop
+# * 启动代理:                  sss proxy start
+# * 停止代理:                  sss proxy stop
+# * 代理状态:                  sss status
+# * 给命令行加载代理环境变量:  eval $(sss env)
+# * 卸载命令行的代理环境变量:  eval $(sss env --unset)
+#
+# 由于已集成客户端，因此修改 DNS 和 hosts 文件已经不是特别需要，特别是同一个机器使用的时候。
+# 如果是多台计算机共用代理，可以考虑直接使用 1080 端口，这样比较方便。
+# 如果必须配置 DNS 域名的话，可以使用下面两个命令：
+#
+# * 配置 DNS:              sss dns start
+# * 删除 DNS:              sss dns stop
+# * 配置本地 hosts 文件：  sss host start
+# * 删除本地 hosts 文件：  sss host stop
 #
 # 使用该脚本的前提条件
 #
 # 1、机器上需要已经装好了 Docker 以及 docker-machine
-# 2、如果需要配置 DNS，则需要安装 doctl： https://github.com/digitalocean/doctl ，mac 下 brew 就可以安装
-# 3、如果需要使用 Vultr 服务器，则需要安装 vultr 的 docker-machine 驱动： https://github.com/janeczku/docker-machine-vultr
-# 4、Vultr 的 API Key 需要在 VULTR_API_KEY 环境变量中
-#
-#   export VULTR_API_KEY=你的API_KEY
-#
-# 5、如果使用 Digital Ocean 的服务器，或打算配置 DNS，则需要配置 Digital Ocean 的 API Token：
-#
-#   export DIGITALOCEAN_ACCESS_TOKEN=你的DO_ACCESS_TOKEN
-#
+# 2、如果需要使用 Vultr 服务器，则需要安装 vultr 的 docker-machine 驱动： https://github.com/janeczku/docker-machine-vultr
+# 3、配置云服务商的 API KEY。可以在本脚本中配置，也可以在外部中 export。
+#     Vultr:          VULTR_API_KEY
+#     Digital Ocean:  DIGITALOCEAN_ACCESS_TOKEN
+# 4、如果需要配置 DNS，则需要安装 doctl： https://github.com/digitalocean/doctl ，mac 下 brew 就可以安装
 
+
+# 域名信息，可以改成你的域名。（这并不是必须的）
 DOMAIN=lab99.org
 NAME=ss
+
+# 远程服务器监听端口
 SERVER_PORT=443
+
+# 本机 SOCKS 代理监听端口
 LOCAL_PORT=1080
+
+# 加密算法
 MODE=aes-256-gcm
+
+# 这是客户端和服务器间通讯的密码，可以换成别的字符串
 TOKEN=dockerrocks
 
 # 默认使用 Digital Ocean 服务器，这样可以避免额外安装 Vultr 驱动。如果需要使用 vultr 服务器，则替换下面的驱动为 vultr
@@ -57,8 +68,9 @@ MACHINE_DRIVER=digitalocean
 
 # Docker Machine - Digital Ocean
 #
+# 如果使用 Digital Ocean 的服务，可以取消下行注释，并且填入访问令牌。
 # DIGITALOCEAN_ACCESS_TOKEN=xxx
-#
+
 # Digtial Ocean Region
 #
 # nyc1    New York 1
@@ -83,8 +95,9 @@ DIGITALOCEAN_SIZE=s-1vcpu-1gb
 
 # Docker Machine - Vultr
 #
+# 如果使用 Vultr 服务，可以取消下行注释，并且填入访问令牌。
 # VULTR_API_KEY=xxx
-# 
+
 # Vultr Region ID
 # * 25 - Tokyo, JP
 # * 19 - Sydney, AU
@@ -97,8 +110,11 @@ VULTR_REGION=39
 # * 202 - 2048 MB RAM,40 GB SSD,2.00 TB BW - $10/month
 VULTR_PLAN=201
 
+# 操作系统选择 Ubuntu 16.04
 VULTR_OS=215
 
+# 给 Linux 安装 Docker Machine 以及 Docker Machine Vultr 驱动。
+# TODO: 不幸的是 Github release 页面下载本身就需要科学上网，应该把它们扔到国内一份。
 function provision_linux() {
   # Install Docker Machine
   curl -fL https://github.com/docker/machine/releases/download/v0.14.0/docker-machine-`uname -s`-`uname -m` -o /tmp/docker-machine
@@ -108,8 +124,9 @@ function provision_linux() {
   sudo install /tmp/docker-machine-driver-vultr /usr/local/bin/docker-machine-driver-vultr
 }
 
+# 给 Mac 安装 Docker Machine Vultr 驱动。至于 Docker Machine 本身，直接安装 Docker for Mac 即可。
 function provision_mac() {
-  brew install docker-machine docker-machine-driver-vultr docker-machine-driver-digitalocean
+  brew install docker-machine-driver-vultr
 }
 
 function provision() {
@@ -122,6 +139,7 @@ function provision() {
   esac
 }
 
+# 创建云主机，并启用 BBR
 function create_machine() {
   # Create a docker host
   docker-machine create $NAME
@@ -144,12 +162,14 @@ EOF
   docker-machine ssh $NAME "sysctl net.ipv4.tcp_available_congestion_control; lsmod | grep bbr"
 }
 
+# 删除云主机
 function remove_machine() {
   # Simply remove the machine
   docker-machine rm -y $NAME
   echo "Removed docker host: $NAME"
 }
 
+# 获取云主机 IP
 function get_machine_ip() {
   ip=$(docker-machine ip $NAME)
   if [ -z "$ip" ]; then
@@ -160,6 +180,7 @@ function get_machine_ip() {
   echo $ip
 }
 
+# 创建 DNS 记录
 function create_dns_record() {
   # Get IP of the docker host
   local ip=$(get_machine_ip)
@@ -181,6 +202,7 @@ function create_dns_record() {
   fi
 }
 
+# 删除 DNS 记录
 function remove_dns_record() {
   # Remove the dns record
   local id=`doctl compute domain records list $DOMAIN | grep $NAME | cut -d' ' -f1`
@@ -192,6 +214,8 @@ function remove_dns_record() {
   fi
 }
 
+# 创建本地 hosts 文件条目
+# TODO: 不再需要
 function create_hosts_record() {
   # Get IP of the docker host
   local ip=$(get_machine_ip)
@@ -203,12 +227,15 @@ function create_hosts_record() {
   echo "$ip   $NAME.$DOMAIN" | sudo tee -a /etc/hosts
 }
 
+# 删除本地 hosts 文件条目
+# TODO: 不再需要
 function remove_hosts_record() {
   if grep -q $NAME.$DOMAIN /etc/hosts; then
     sudo sed -i "/$NAME.$DOMAIN/d" /etc/hosts
   fi
 }
 
+# 启动远程服务器
 function start_server() {
   # Start Proxy on remote server
   eval $(docker-machine env $NAME)
@@ -225,6 +252,7 @@ function start_server() {
       -k "-t 127.0.0.1:$SERVER_PORT -l :$SERVER_PORT -mode fast2"
 }
 
+# 启动本地客户端
 function start_client() {
   # Run client on the local
   eval $(docker-machine env --unset)
@@ -240,6 +268,7 @@ function start_client() {
       -k "-r ${ip}:$SERVER_PORT -l :$SERVER_PORT -mode fast2"
 }
 
+# 停止本地客户端
 function stop_client() {
   # Stop client on the local
   eval $(docker-machine env --unset)
@@ -247,6 +276,7 @@ function stop_client() {
   docker rm -f $NAME
 }
 
+# 开启代理
 function start_proxy() {
   eval $(environment --unset)
   create_machine
@@ -254,12 +284,14 @@ function start_proxy() {
   start_client
 }
 
+# 停止代理
 function stop_proxy() {
   eval $(environment --unset)
   stop_client
   remove_machine
 }
 
+# 查看代理状态
 function status() {
   eval $(environment --unset)
   docker-machine ls --filter "name=$NAME"
@@ -268,6 +300,7 @@ function status() {
   docker logs $@ $NAME
 }
 
+# 代理相关命令
 function proxy() {
   local subcmd=$1
   shift
@@ -278,6 +311,7 @@ function proxy() {
   esac
 }
 
+# DNS 相关命令
 function dns() {
   local subcmd=$1
   shift
@@ -288,6 +322,7 @@ function dns() {
   esac
 }
 
+# 本地 hosts 文件相关命令
 function host() {
   local subcmd=$1
   shift
@@ -298,6 +333,7 @@ function host() {
   esac
 }
 
+# 命令行环境变量设置以及取消
 function environment() {
   if [ "$1" = "--unset" ]; then
     # Unset all proxy env
@@ -319,6 +355,8 @@ function environment() {
   fi
 }
 
+
+# 程序入口
 command=$1
 shift
 
