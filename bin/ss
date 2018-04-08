@@ -3,12 +3,20 @@
 #
 # 短连接地址：http://t.cn/RWiJf2w
 #
-# 将该脚本放入 `~/bin/` 目录下，打通路径并赋予可执行权限后即可使用。
+# 下载脚本：
+#
+#   将该脚本放入 `~/bin/` 目录下，打通路径并赋予可执行权限后即可使用。
 #
 #   $ curl http://t.cn/RWiJf2w -o ~/bin/ss
 #   $ chmod a+x ~/bin/ss
 #
-# 使用命令：
+# 使用方法：
+#
+# 1. 直接在命令行执行 `ss proxy start`；
+# 2. 在服务建立成功后，在网络设置中，配置Socks代理服务器为 `127.0.0.1:1080` 即可。
+# 3. 停止使用的时候，只需要执行 `ss proxy stop`，就会删除远程服务器并且停止本地客户端，然后在网络设置中取消 Socks 代理服务器。
+#
+# 所支持命令：
 #
 # * 启动代理:   ss proxy start
 # * 停止代理:   ss proxy stop
@@ -24,16 +32,12 @@
 #
 # 1、机器上需要已经装好了 Docker 以及 docker-machine
 # 2、如果需要配置 DNS，则需要安装 doctl： https://github.com/digitalocean/doctl ，mac 下 brew 就可以安装
-# 3、需要安装 vultr 的 docker-machine 驱动： https://github.com/janeczku/docker-machine-vultr
+# 3、如果需要使用 Vultr 服务器，则需要安装 vultr 的 docker-machine 驱动： https://github.com/janeczku/docker-machine-vultr
 # 4、Vultr 的 API Key 需要在 VULTR_API_KEY 环境变量中
 #
 #   export VULTR_API_KEY=你的API_KEY
 #
-# 5、由于Vultr默认为 RancherOS，所以还需要设置为 Ubuntu 16.04 LTS
-#
-#   export VULTR_OS=215
-#
-# 6、如果需要 DNS 配置，则也需要有 Digtial Ocean 的 API TOKEN 在环境变量 DIGITALOCEAN_ACCESS_TOKEN 中
+# 5、如果使用 Digital Ocean 的服务器，或打算配置 DNS，则需要配置 Digital Ocean 的 API Token：
 #
 #   export DIGITALOCEAN_ACCESS_TOKEN=你的DO_ACCESS_TOKEN
 #
@@ -90,6 +94,8 @@ VULTR_REGION=39
 # * 201 - 1024 MB RAM,25 GB SSD,1.00 TB BW - $5/month
 # * 202 - 2048 MB RAM,40 GB SSD,2.00 TB BW - $10/month
 VULTR_PLAN=201
+
+VULTR_OS=215
 
 function provision_linux() {
   # Install Docker Machine
