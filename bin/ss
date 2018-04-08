@@ -127,14 +127,16 @@ function create_machine() {
 
   # Prepare the machine
   docker-machine ssh $NAME  << EOF
+  export DEBIAN_FRONTEND=noninteractive
   apt-get update
-  apt-get install --install-recommends -y linux-generic-hwe-16.04 
+  apt-get install --install-recommends -qq --force-yes linux-generic-hwe-16.04 
   # apt-get dist-upgrade -y
   echo 'net.core.default_qdisc=fq' >> /etc/sysctl.conf
   echo 'net.ipv4.tcp_congestion_control=bbr' >> /etc/sysctl.conf
   reboot
 EOF
 
+  echo "Waiting for the remote server reboot ..."
   sleep 20
 
   docker-machine ssh $NAME "sysctl net.ipv4.tcp_available_congestion_control; lsmod | grep bbr"
