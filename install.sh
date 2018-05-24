@@ -32,8 +32,8 @@ function install_common() {
 		apt-transport-https \
 		curl \
 		zsh \
-		zsh-antigen \
-		zsh-syntax-highlighting \
+		fonts-powerline \
+		fonts-font-awesome \
 		pv \
 		git \
 		jq \
@@ -48,11 +48,11 @@ function install_common() {
 	case "$distro_version" in
 		xenial)
 			# gnupg 1 cannot fetch key from HTTPS, so we need gnupg-curl
-			sudo apt-get install -y gnupg-curl
+			sudo apt-get install -y gnupg-curl zsh-antigen
 			;;
-		artful)
+		artful|bionic)
 			# It's good to have neofetch for fun, but it's only available since 17.04
-			sudo apt-get install -y neofetch
+			sudo apt-get install -y neofetch zplug
 			;;
 	esac
 }
@@ -353,12 +353,6 @@ function install_oh_my_zsh() {
 	mkdir -p $ZSH_CUSTOM/themes
 	mkdir -p $ZSH_CUSTOM/plugins
 
-	## Theme
-	if [ ! -f $ZSH_CUSTOM/zeta_theme.zsh ]; then
-		wget https://raw.githubusercontent.com/skylerlee/zeta-zsh-theme/master/zeta.zsh-theme -O $ZSH_CUSTOM/themes/zeta.zsh-theme
-		echo 'ZSH_THEME="zeta"' > $ZSH_CUSTOM/zeta_theme.zsh
-	fi
-
 	## Alias
 	if [ ! -f $ZSH_CUSTOM/alias.zsh ]; then
 		cat <<EOF | tee $ZSH_CUSTOM/alias.zsh
@@ -378,32 +372,32 @@ EOF
 # My Functions
 
 function show_certs() {
-  local server=$1
-  if [ -z "$1" ]; then
+  local server=\$1
+  if [ -z "\$1" ]; then
     echo "Usage: show_certs www.example.com"
     return 1
   fi
   
-  local port=${2:-443}
-  echo \
-    | openssl s_client \
-      -showcerts \
-      -servername "$server" \
-      -connect "$server:$port" \
-      2>/dev/null \
+  local port=\${2:-443}
+  echo \\
+    | openssl s_client \\
+      -showcerts \\
+      -servername "\$server" \\
+      -connect "\$server:\$port" \\
+      2>/dev/null \\
     | openssl x509 -inform pem -noout -text
 }
 
 # 寻找最新的40个文件。
 function find_latest() {
-  if [ -z "$1" ]; then
-    echo "Usage: find_latest <directory> [number]
+  if [ -z "\$1" ]; then
+    echo "Usage: find_latest <directory> [number]"
     return 1
   fi
 
-  local num=${2:-10}
+  local num=\${2:-10}
 
-  find $1 -type f -printf '%T@ %p\n' | sort -n | tail -$num | cut -f2- -d" "
+  find \$1 -type f -printf '%T@ %p\n' | sort -n | tail -\$num | cut -f2- -d" "
 }
 
 EOF
@@ -412,7 +406,7 @@ EOF
 
 	## locales
 	if [ ! -f $ZSH_CUSTOM/locales.zsh ]; then
-		echo <<EOF | tee $ZSH_CUSTOM/locales.zsh
+		cat <<EOF | tee $ZSH_CUSTOM/locales.zsh
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 EOF
@@ -421,22 +415,23 @@ EOF
 	## golang
 	if [ ! -f $ZSH_CUSTOM/golang.zsh ]; then
 		mkdir -p ~/lab/go
-		echo <<EOF | tee $ZSH_CUSTOM/golang.zsh
-export GOPATH=$HOME/lab/go
-export GOBIN=$GOPATH/bin
-export PATH=$PATH:$GOBIN
+		cat <<EOF | tee $ZSH_CUSTOM/golang.zsh
+export GOPATH=\$HOME/lab/go
+export GOBIN=\$GOPATH/bin
+export PATH=\$PATH:\$GOBIN
 EOF
 	fi
 
 	## path
 	if [ ! -f $ZSH_CUSTOM/path.zsh ]; then
 		mkdir -p ~/bin
-		echo "export PATH=$PATH:$HOME/bin:$HOME/Dropbox/bin" | tee $ZSH_CUSTOM/path.zsh
+		echo 'export PATH=$PATH:$HOME/bin:$HOME/Dropbox/bin' | tee $ZSH_CUSTOM/path.zsh
 	fi
 
-	## zsh-antigen
-	if [ ! -f $ZSH_CUSTOM/antigen.zsh ]; then
-		cat <<EOF | tee $ZSH_CUSTOM/antigen.zsh
+	if [ "$distro_version" = "xenial" ]; then
+		## zsh-antigen
+		if [ ! -f $ZSH_CUSTOM/antigen.zsh ]; then
+			cat <<EOF | tee $ZSH_CUSTOM/antigen.zsh
 source /usr/share/zsh-antigen/antigen.zsh
 
 antigen bundle git
@@ -447,7 +442,7 @@ antigen bundle gpg-agent
 antigen bundle docker
 antigen bundle docker-compose
 
-if [ "$(uname)" = "Darwin" ]; then
+if [ "\$(uname)" = "Darwin" ]; then
 	antigen bundle brew
 	antigen bundle osx
 fi
@@ -462,12 +457,61 @@ antigen bundle zsh-users/zsh-autosuggestions
 antigen apply
 
 EOF
-	fi
+		fi
 
-	## zsh-syntax-highlighting
-	if ! grep -q "zsh-syntax-highlighting.zsh"; then
-		# this should be the last line of `.zshrc`
-		echo "source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" | tee -a ~/.zshrc
+	else
+
+		## zsh-zplug
+		if [ ! -f $ZSH_CUSTOM/zplug.zsh ]; then
+			cat <<EOF | tee $ZSH_CUSTOM/zplug.zsh
+source /usr/share/zplug/init.zsh
+
+zplug "plugins/git",	from:oh-my-zsh
+zplug "plugins/golang",	from:oh-my-zsh
+zplug "plugins/command-not-found",	from:oh-my-zsh
+zplug "plugins/gpg-agent",	from:oh-my-zsh
+zplug "plugins/docker",	from:oh-my-zsh
+zplug "plugins/docker-compose",	from:oh-my-zsh
+
+if [ "\$(uname)" = "Darwin" ]; then
+	zplug "plugins/brew",	from:oh-my-zsh
+	zplug "plugins/osx",	from:oh-my-zsh
+fi
+
+# Make sure to use double quotes
+zplug "zsh-users/zsh-history-substring-search"
+
+# Set the priority when loading
+# e.g., zsh-syntax-highlighting must be loaded
+# after executing compinit command and sourcing other plugins
+# (If the defer tag is given 2 or above, run after compinit command)
+zplug "zsh-users/zsh-syntax-highlighting", defer:2
+
+zplug "wbinglee/zsh-wakatime"
+zplug "zsh-users/zsh-autosuggestions"
+
+# Zsh plugin for installing, updating and loading nvm
+zplug "lukechilds/zsh-nvm"
+
+# Load theme file
+# zplug "skylerlee/zeta-zsh-theme", use:zeta.zsh-theme, from:github, as:theme
+# zplug "dracula/zsh", as:theme
+zplug "eendroroy/alien"
+export USE_NERD_FONT=1
+export ALIEN_BRANCH_SYM=🌵
+
+if ! zplug check --verbose; then
+    printf "Install? [y/N]: "
+    if read -q; then
+        echo; zplug install
+    fi
+fi
+
+
+zplug load
+
+EOF
+		fi
 	fi
 
 	echo "Please run: chsh -s $(which zsh)"
@@ -523,7 +567,7 @@ function main() {
 
 	# 输入法选择
 	case "$distro_version" in
-		xenial)
+		xenial|bionic)
 			install_sogou
 			;;
 		artful)
