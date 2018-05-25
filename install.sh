@@ -6,6 +6,8 @@
 user_name="Tao Wang"
 user_email="twang2218@gmail.com"
 
+REPO_URL=https://raw.github.com/twang2218/dotfiles/master
+
 export DEBIAN_FRONTEND=noninteractive
 
 # Utils
@@ -353,175 +355,18 @@ function install_oh_my_zsh() {
 	mkdir -p $ZSH_CUSTOM/themes
 	mkdir -p $ZSH_CUSTOM/plugins
 
-	## Alias
-	if [ ! -f $ZSH_CUSTOM/alias.zsh ]; then
-		cat <<EOF | tee $ZSH_CUSTOM/alias.zsh
-# My Alias
-
-alias ll='ls -al'
-alias brewup='brew update && brew upgrade && brew cleanup; brew doctor; brew cask outdated'
-alias dsh='docker run -it --rm --privileged --pid=host debian nsenter -t 1 -m -u -n -i sh'
-alias docker_stats='docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}"'
-
-EOF
-	fi
-
-	## Functions
-	if [ ! -f $ZSH_CUSTOM/func.zsh ]; then
-		cat <<EOF | tee $ZSH_CUSTOM/func.zsh
-# My Functions
-
-function show_certs() {
-  local server=\$1
-  if [ -z "\$1" ]; then
-    echo "Usage: show_certs www.example.com"
-    return 1
-  fi
-  
-  local port=\${2:-443}
-  echo \\
-    | openssl s_client \\
-      -showcerts \\
-      -servername "\$server" \\
-      -connect "\$server:\$port" \\
-      2>/dev/null \\
-    | openssl x509 -inform pem -noout -text
-}
-
-# 寻找最新的40个文件。
-function find_latest() {
-  if [ -z "\$1" ]; then
-    echo "Usage: find_latest <directory> [number]"
-    return 1
-  fi
-
-  local num=\${2:-10}
-
-  find \$1 -type f -printf '%T@ %p\n' | sort -n | tail -\$num | cut -f2- -d" "
-}
-
-EOF
-	fi
-
-
-	## locales
-	if [ ! -f $ZSH_CUSTOM/locales.zsh ]; then
-		cat <<EOF | tee $ZSH_CUSTOM/locales.zsh
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
-EOF
-	fi
-
-	## golang
-	if [ ! -f $ZSH_CUSTOM/golang.zsh ]; then
-		mkdir -p ~/lab/go
-		cat <<EOF | tee $ZSH_CUSTOM/golang.zsh
-export GOPATH=\$HOME/lab/go
-export GOBIN=\$GOPATH/bin
-export PATH=\$PATH:\$GOBIN
-EOF
-	fi
-
-	## path
-	if [ ! -f $ZSH_CUSTOM/path.zsh ]; then
-		mkdir -p ~/bin
-		echo 'export PATH=$PATH:$HOME/bin:$HOME/Dropbox/bin' | tee $ZSH_CUSTOM/path.zsh
-	fi
-
-	if [ "$distro_version" = "xenial" ]; then
-		## zsh-antigen
-		if [ ! -f $ZSH_CUSTOM/antigen.zsh ]; then
-			cat <<EOF | tee $ZSH_CUSTOM/antigen.zsh
-source /usr/share/zsh-antigen/antigen.zsh
-
-antigen bundle git
-antigen bundle golang
-antigen bundle heroku
-antigen bundle command-not-found
-antigen bundle gpg-agent
-antigen bundle docker
-antigen bundle docker-compose
-
-if [ "\$(uname)" = "Darwin" ]; then
-	antigen bundle brew
-	antigen bundle osx
-fi
-
-# if [ "$(lsb_release -si)" = "Ubuntu" ]; then
-# 	antigen bundle ubuntu
-# fi
-
-antigen bundle wbinglee/zsh-wakatime
-antigen bundle zsh-users/zsh-autosuggestions
-
-antigen apply
-
-EOF
-		fi
-
-	else
-
-		## zsh-zplug
-		if [ ! -f $ZSH_CUSTOM/zplug.zsh ]; then
-			cat <<EOF | tee $ZSH_CUSTOM/zplug.zsh
-source /usr/share/zplug/init.zsh
-
-zplug "plugins/git",	from:oh-my-zsh
-zplug "plugins/golang",	from:oh-my-zsh
-zplug "plugins/command-not-found",	from:oh-my-zsh
-zplug "plugins/gpg-agent",	from:oh-my-zsh
-zplug "plugins/docker",	from:oh-my-zsh
-zplug "plugins/docker-compose",	from:oh-my-zsh
-
-if [ "\$(uname)" = "Darwin" ]; then
-	zplug "plugins/brew",	from:oh-my-zsh
-	zplug "plugins/osx",	from:oh-my-zsh
-fi
-
-# Make sure to use double quotes
-zplug "zsh-users/zsh-history-substring-search"
-
-# Set the priority when loading
-# e.g., zsh-syntax-highlighting must be loaded
-# after executing compinit command and sourcing other plugins
-# (If the defer tag is given 2 or above, run after compinit command)
-zplug "zsh-users/zsh-syntax-highlighting", defer:2
-
-zplug "wbinglee/zsh-wakatime"
-zplug "zsh-users/zsh-autosuggestions"
-
-# Zsh plugin for installing, updating and loading nvm
-zplug "lukechilds/zsh-nvm"
-
-# Load theme file
-# zplug "skylerlee/zeta-zsh-theme", use:zeta.zsh-theme, from:github, as:theme
-# zplug "dracula/zsh", as:theme
-zplug "eendroroy/alien"
-export USE_NERD_FONT=1
-export ALIEN_BRANCH_SYM=🌵
-
-if ! zplug check --verbose; then
-    printf "Install? [y/N]: "
-    if read -q; then
-        echo; zplug install
-    fi
-fi
-
-
-zplug load
-
-EOF
-		fi
+	# Fetch ZSH custom script
+	if [ ! -f $ZSH_CUSTOM/custom.zsh ]; then
+		curl -fsSL $REPO_URL/zsh_custom.zsh -o $ZSH_CUSTOM/custom.zsh
 	fi
 
 	echo "Please run: chsh -s $(which zsh)"
 }
 
 function install_bin() {
-	BASEURL=https://coding.net/u/twang2218/p/dotfiles/git/raw/master
 	mkdir -p ~/bin
-	wget $BASEURL/bin/qq -O ~/bin/qq
-	wget $BASEURL/bin/ss -O ~/bin/sss
+	curl -fsSL $REPO_URL/bin/qq -o ~/bin/qq
+	curl -fsSL $REPO_URL/bin/sss -o ~/bin/sss
 
 	chmod u+x ~/bin/*
 }
@@ -583,7 +428,8 @@ function main() {
 	install_zeal
 	install_snaps
 	remove_unwanted
-	install_bin
+	# use zplug instead
+	# install_bin
 	add_favorite_apps
 	prepare_lab
 	install_oh_my_zsh
