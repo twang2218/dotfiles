@@ -201,9 +201,24 @@ function install_sogou() {
 ## 安装 iBus 输入法
 function install_ibus() {
 	# 安装 Pinyin 输入法
-	sudo apt-get install -y ibus-pinyin
+	sudo apt-get install -y ibus-pinyin ibus-gtk3
 	# 指定 pinyin 输入法
 	gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us'), ('ibus', 'pinyin')]"
+
+	# /etc/environment
+	if grep -q XMODIFIERS /etc/environment; then
+		echo "IM environment variables have been added already."
+		return
+	fi
+
+	cat <<EOF | sudo tee -a /etc/environment
+GTK_IM_MODULE=ibus
+QT_IM_MODULE=ibus
+XMODIFIERS=@im=ibus
+EOF
+
+	im-config -n ibus
+
 	# 删除 sun pinyin
 	sudo apt-get purge -y ibus-sunpinyin
 	# 我们只需要 ibus，所以删除所有 fcitx 相关的包。
