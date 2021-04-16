@@ -1,6 +1,8 @@
 # My Alias
 alias ll='ls -al'
-alias brewup='brew update && brew upgrade && brew cleanup; brew doctor; brew cask outdated'
+if [[ "$OSTYPE" == "*darwin*amd64*" ]]; then
+  alias brewup='brew update && brew upgrade && brew cleanup; brew doctor; brew cask outdated'
+fi
 alias dsh='docker run -it --rm --privileged --pid=host debian nsenter -t 1 -m -u -n -i sh'
 alias docker_stats='docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}"'
 
@@ -57,6 +59,7 @@ fi
 export PATH=$PATH:$HOME/bin:$HOME/Dropbox/bin
 
 if [ `lsb_release -s -c` = "xenial" ]; then
+    # for Ubuntu 16.04 only
     ## antigen
     source /usr/share/zsh-antigen/antigen.zsh
 
@@ -84,10 +87,18 @@ else
     zplug "plugins/docker",	from:oh-my-zsh
     zplug "plugins/docker-compose",	from:oh-my-zsh
 
-    if [[ $OSTYPE == *darwin* ]]; then
-      zplug "plugins/brew", from:oh-my-zsh
-      zplug "plugins/osx", from:oh-my-zsh
-    fi
+    case "$OSTYPE" in
+      *darwin*)
+        zplug "plugins/brew", from:oh-my-zsh, if:"[[ $OSTYPE == *darwin* ]]"
+        zplug "plugins/osx", from:oh-my-zsh, if:"[[ $OSTYPE == *darwin* ]]"
+        # zplug "digitalocean/doctl", from:gh-r, as:command, rename-to:doctl, use:"*darwin*amd64*", if:"[[ $OSTYPE == *darwin* ]]"
+        # zplug "aliyun/aliyun-cli", from:gh-r, as:command, rename-to:aliyun, use:"*macosx*amd64*", if:"[[ $OSTYPE == *darwin* ]]"
+        ;;
+      *linux*)
+        zplug "digitalocean/doctl", from:gh-r, as:command, rename-to:doctl, use:"*linux*amd64*", if:"[[ $OSTYPE == *linux* ]]"
+        zplug "aliyun/aliyun-cli", from:gh-r, as:command, rename-to:aliyun, use:"*linux*amd64*", if:"[[ $OSTYPE == *linux* ]]"
+        ;;
+    esac
 
     # Make sure to use double quotes
     zplug "zsh-users/zsh-history-substring-search"
@@ -105,14 +116,18 @@ else
     zplug "lukechilds/zsh-nvm"
 
     # bin
-    zplug "twang2218/dotfiles", as:command, use:"bin/{qq,sss}"
+    zplug "twang2218/dotfiles", as:command, use:"bin/{qq,sss,server,domain}"
   
     # Load theme file
     # zplug "skylerlee/zeta-zsh-theme", use:zeta.zsh-theme, from:github, as:theme
     # zplug "dracula/zsh", as:theme
-    zplug "eendroroy/alien"
-    export USE_NERD_FONT=1
-    export ALIEN_BRANCH_SYM=🌵
+    # zplug "eendroroy/alien"
+    # export USE_NERD_FONT=1
+    # export ALIEN_BRANCH_SYM=🌵
+    zplug "denysdovhan/spaceship-prompt", use:spaceship.zsh, from:github, as:theme
+    export SPACESHIP_PROMPT_ADD_NEWLINE=false
+    export SPACESHIP_TIME_SHOW=true
+    export SPACESHIP_GIT_SYMBOL=🌵
 
     if ! zplug check --verbose; then
         printf "Install? [y/N]: "

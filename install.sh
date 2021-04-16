@@ -52,7 +52,7 @@ function install_common() {
 			# gnupg 1 cannot fetch key from HTTPS, so we need gnupg-curl
 			sudo apt-get install -y gnupg-curl zsh-antigen
 			;;
-		artful|bionic)
+		*)	# artful|bionic|
 			# It's good to have neofetch for fun, but it's only available since 17.04
 			sudo apt-get install -y neofetch zplug
 			;;
@@ -243,7 +243,7 @@ function install_wire() {
 
 # keeweb
 function install_keeweb() {
-	KEEWEB_VERSION=1.5.6
+	KEEWEB_VERSION=1.17.6
 	if dpkg -l keeweb-desktop | grep -q ii; then
 		echo "KeeWeb has been installed already."
 		return

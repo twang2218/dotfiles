@@ -6,6 +6,7 @@ TAPS=(
 )
 
 FORMULAS=(
+    aliyun-cli
     apktool
     awscli
     binwalk

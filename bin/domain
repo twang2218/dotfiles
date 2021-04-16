@@ -1,0 +1,72 @@
+#!/bin/bash
+
+if [[ -z "$DOMAIN" ]]; then
+    DOMAIN=lab99.org
+fi
+
+if [[ -z "$DIGITALOCEAN_ACCESS_TOKEN" ]]; then
+    echo 'Cannot find Digial Ocean access key. Try run `eval $(cloud do)`'
+    exit 1
+fi
+
+# 创建 DNS 记录
+domain_register(){
+    local server_name=$1
+    local server_ip=$2
+    if [[ -z "$server_name" ]]; then
+        server_name=$SERVER_NAME
+    fi
+
+    if [[ -z "$server_ip" ]]; then
+        server_ip=$(server ip $server_name)
+    fi
+
+    doctl compute domain records create "$DOMAIN" \
+        --record-name=$server_name \
+        --record-data=$server_ip \
+        --record-type=A
+}
+
+# 注销 DNS 记录
+domain_unregister(){
+    local server_name=$1
+    if [[ -z "$server_name" ]]; then
+        server_name=$SERVER_NAME
+    fi
+
+    # Find the record id
+    local id=$(doctl compute domain records list "$DOMAIN" | grep $server_name | cut -d' ' -f1)
+    if [[ -z "$id" ]]; then
+        echo "Cannot find the record ID for '$server_name'"
+        return
+    fi
+    # delete record
+    doctl compute domain records delete "$DOMAIN" $id -f
+}
+
+# 列出域名中的记录
+domain_list(){
+    doctl compute domain records list "$DOMAIN"
+}
+
+usage() {
+    echo "Usage: $(basename $0) <command>"
+    echo
+    echo "  command:"
+    echo
+    echo "      register <ip> <name>        register the domain name with given IP"
+    echo "      unregister <name>           unregister the domain name"
+    echo "      list                        list all the domain names"
+    echo
+}
+
+# 程序入口
+command=$1
+shift
+
+case $command in
+    register)   domain_register      "$@" ;;
+    unregister) domain_unregister    "$@" ;;
+    list)       domain_list          "$@" ;;
+    *)          usage ;;
+esac
