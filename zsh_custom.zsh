@@ -58,84 +58,64 @@ if [ ! -d $HOME/bin ]; then
 fi
 export PATH=$PATH:$HOME/bin:$HOME/Dropbox/bin
 
-if [ `lsb_release -s -c` = "xenial" ]; then
-    # for Ubuntu 16.04 only
-    ## antigen
-    source /usr/share/zsh-antigen/antigen.zsh
 
-    antigen bundle git
-    antigen bundle golang
-    antigen bundle heroku
-    antigen bundle command-not-found
-    antigen bundle gpg-agent
-    antigen bundle docker
-    antigen bundle docker-compose
+## zsh-zplug
+source /usr/share/zplug/init.zsh
 
-    antigen bundle wbinglee/zsh-wakatime
-    antigen bundle zsh-users/zsh-autosuggestions
+zplug "plugins/git",	from:oh-my-zsh
+zplug "plugins/golang",	from:oh-my-zsh
+zplug "plugins/command-not-found",	from:oh-my-zsh
+zplug "plugins/gpg-agent",	from:oh-my-zsh
+zplug "plugins/docker",	from:oh-my-zsh
+zplug "plugins/docker-compose",	from:oh-my-zsh
 
-    antigen apply
+# Make sure to use double quotes
+zplug "zsh-users/zsh-history-substring-search"
 
-else
-	## zsh-zplug
-    source /usr/share/zplug/init.zsh
+# Set the priority when loading
+# e.g., zsh-syntax-highlighting must be loaded
+# after executing compinit command and sourcing other plugins
+# (If the defer tag is given 2 or above, run after compinit command)
+zplug "zsh-users/zsh-syntax-highlighting", defer:2
+zplug "zsh-users/zsh-autosuggestions"
 
-    zplug "plugins/git",	from:oh-my-zsh
-    zplug "plugins/golang",	from:oh-my-zsh
-    zplug "plugins/command-not-found",	from:oh-my-zsh
-    zplug "plugins/gpg-agent",	from:oh-my-zsh
-    zplug "plugins/docker",	from:oh-my-zsh
-    zplug "plugins/docker-compose",	from:oh-my-zsh
+zplug "wbinglee/zsh-wakatime"
 
-    case "$OSTYPE" in
-      *darwin*)
-        zplug "plugins/brew", from:oh-my-zsh, if:"[[ $OSTYPE == *darwin* ]]"
-        zplug "plugins/osx", from:oh-my-zsh, if:"[[ $OSTYPE == *darwin* ]]"
-        # zplug "digitalocean/doctl", from:gh-r, as:command, rename-to:doctl, use:"*darwin*amd64*", if:"[[ $OSTYPE == *darwin* ]]"
-        # zplug "aliyun/aliyun-cli", from:gh-r, as:command, rename-to:aliyun, use:"*macosx*amd64*", if:"[[ $OSTYPE == *darwin* ]]"
-        ;;
-      *linux*)
-        zplug "digitalocean/doctl", from:gh-r, as:command, rename-to:doctl, use:"*linux*amd64*", if:"[[ $OSTYPE == *linux* ]]"
-        zplug "aliyun/aliyun-cli", from:gh-r, as:command, rename-to:aliyun, use:"*linux*amd64*", if:"[[ $OSTYPE == *linux* ]]"
-        ;;
-    esac
+# Zsh plugin for installing, updating and loading nvm
+export NVM_LAZY_LOAD=true
+zplug "lukechilds/zsh-nvm"
 
-    # Make sure to use double quotes
-    zplug "zsh-users/zsh-history-substring-search"
+# Rename a command with the string captured with `use` tag
+zplug "b4b4r07/httpstat", \
+    as:command, \
+    use:'(*).sh', \
+    rename-to:'$1'
 
-    # Set the priority when loading
-    # e.g., zsh-syntax-highlighting must be loaded
-    # after executing compinit command and sourcing other plugins
-    # (If the defer tag is given 2 or above, run after compinit command)
-    zplug "zsh-users/zsh-syntax-highlighting", defer:2
+# macOS
+zplug "plugins/brew", from:oh-my-zsh, if:"[[ $OSTYPE == *darwin* ]]"
+zplug "plugins/osx", from:oh-my-zsh, if:"[[ $OSTYPE == *darwin* ]]"
+zplug "digitalocean/doctl", from:gh-r, as:command, rename-to:doctl, use:"*darwin*amd64*", if:"[[ $OSTYPE == *darwin* ]]"
+zplug "aliyun/aliyun-cli", from:gh-r, as:command, rename-to:aliyun, use:"*darwin*amd64*", if:"[[ $OSTYPE == *darwin* ]]"
+# linux
+zplug "digitalocean/doctl", from:gh-r, as:command, rename-to:doctl, use:"*linux*amd64*", if:"[[ $OSTYPE == *linux* ]]"
+zplug "aliyun/aliyun-cli", from:gh-r, as:command, rename-to:aliyun, use:"*linux*amd64*", if:"[[ $OSTYPE == *linux* ]]"
 
-    zplug "wbinglee/zsh-wakatime"
-    zplug "zsh-users/zsh-autosuggestions"
+# bin
+zplug "twang2218/dotfiles", as:command, use:"bin/{qq,sss,server,domain}"
 
-    # Zsh plugin for installing, updating and loading nvm
-    zplug "lukechilds/zsh-nvm"
+# Load theme file
+zplug "romkatv/powerlevel10k", as:theme, depth:1
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-    # bin
-    zplug "twang2218/dotfiles", as:command, use:"bin/{qq,sss,server,domain}"
-  
-    # Load theme file
-    # zplug "skylerlee/zeta-zsh-theme", use:zeta.zsh-theme, from:github, as:theme
-    # zplug "dracula/zsh", as:theme
-    # zplug "eendroroy/alien"
-    # export USE_NERD_FONT=1
-    # export ALIEN_BRANCH_SYM=🌵
-    zplug "denysdovhan/spaceship-prompt", use:spaceship.zsh, from:github, as:theme
-    export SPACESHIP_PROMPT_ADD_NEWLINE=false
-    export SPACESHIP_TIME_SHOW=true
-    export SPACESHIP_GIT_SYMBOL=🌵
 
-    if ! zplug check --verbose; then
-        printf "Install? [y/N]: "
-        if read -q; then
-            echo; zplug install
-        fi
+# Install plugins if there are plugins that have not been installed
+if ! zplug check --verbose; then
+    printf "Install? [y/N]: "
+    if read -q; then
+        echo; zplug install
     fi
-
-
-    zplug load
 fi
+
+
+zplug load

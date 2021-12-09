@@ -1,0 +1,43 @@
+#!/bin/bash
+
+BACKUP_DIR=~/Dropbox/Dev
+TIMESTAMP=`date +'%F_%H-%M'`
+
+pack() {
+    mkdir -p $BACKUP_DIR
+
+    # Backup the previous backup if it exists
+    if [ -f $BACKUP_DIR/$1.tgz ]; then
+        # override the previous backup of backup
+        mv $BACKUP_DIR/$1.tgz $BACKUP_DIR/$1.tgz.bak
+    fi
+
+    tar -czvf $BACKUP_DIR/$1.$TIMESTAMP.tgz $1
+}
+
+unpack() {
+    local project=${1%%.*}
+    if [[ $1 == *.* ]] ; then
+        # contains dot, then it's a filename
+        filename=$BACKUP_DIR/$1
+    else
+        # only project name, then get the latest file.
+        filename=$(ls -t $BACKUP_DIR/$project.*tgz | head -n1)
+    fi
+    echo "[${project}] => ${filename}"
+    mkdir -p ${project}
+    tar -zxvf ${filename} --strip-components=1 -C ${project}
+}
+
+show() {
+    ls -hal $BACKUP_DIR/$1.*tgz
+}
+
+command=$1
+shift
+case "$command" in
+    pack)   pack $@ ;;
+    unpack) unpack $@ ;;
+    show)   show $@ ;;
+    *)      echo "Usage: $0 <pack|unpack|show>" ;;
+esac
