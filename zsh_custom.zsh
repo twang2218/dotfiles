@@ -1,3 +1,11 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+
 # My Alias
 alias ll='ls -al'
 if [[ "$OSTYPE" == "*darwin*amd64*" ]]; then
@@ -60,6 +68,7 @@ export PATH=$PATH:$HOME/bin:$HOME/Dropbox/bin
 
 
 ## zsh-zplug
+ZPLUG_BIN=$HOME/bin
 source /usr/share/zplug/init.zsh
 
 zplug "plugins/git",	from:oh-my-zsh
@@ -81,27 +90,33 @@ zplug "zsh-users/zsh-autosuggestions"
 
 zplug "wbinglee/zsh-wakatime"
 
-# Zsh plugin for installing, updating and loading nvm
-export NVM_LAZY_LOAD=true
-zplug "lukechilds/zsh-nvm"
-
 # Rename a command with the string captured with `use` tag
 zplug "b4b4r07/httpstat", \
     as:command, \
     use:'(*).sh', \
     rename-to:'$1'
 
-# macOS
-zplug "plugins/brew", from:oh-my-zsh, if:"[[ $OSTYPE == *darwin* ]]"
-zplug "plugins/osx", from:oh-my-zsh, if:"[[ $OSTYPE == *darwin* ]]"
-zplug "digitalocean/doctl", from:gh-r, as:command, rename-to:doctl, use:"*darwin*amd64*", if:"[[ $OSTYPE == *darwin* ]]"
-zplug "aliyun/aliyun-cli", from:gh-r, as:command, rename-to:aliyun, use:"*darwin*amd64*", if:"[[ $OSTYPE == *darwin* ]]"
-# linux
-zplug "digitalocean/doctl", from:gh-r, as:command, rename-to:doctl, use:"*linux*amd64*", if:"[[ $OSTYPE == *linux* ]]"
-zplug "aliyun/aliyun-cli", from:gh-r, as:command, rename-to:aliyun, use:"*linux*amd64*", if:"[[ $OSTYPE == *linux* ]]"
+case "$OSTYPE" in
+  linux*)
+    # linux
+    zplug "digitalocean/doctl", as:command, rename-to:doctl, use:"*linux*amd64*"
+    zplug "aliyun/aliyun-cli", as:command, rename-to:aliyun, use:"*linux*amd64*"
+    ;;
+  darwin*)
+    # macOS
+    zplug "plugins/brew", from:oh-my-zsh
+    zplug "plugins/osx", from:oh-my-zsh
+    zplug "digitalocean/doctl", as:command, rename-to:doctl, use:"*darwin*amd64*"
+    zplug "aliyun/aliyun-cli", as:command, rename-to:aliyun, use:"*darwin*amd64*"
+    ;;
+esac
 
 # bin
 zplug "twang2218/dotfiles", as:command, use:"bin/{qq,sss,server,domain}"
+
+# Zsh plugin for installing, updating and loading nvm
+export NVM_LAZY_LOAD=true
+zplug "lukechilds/zsh-nvm"
 
 # Load theme file
 zplug "romkatv/powerlevel10k", as:theme, depth:1
