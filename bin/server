@@ -89,11 +89,12 @@ get_server_ip(){
 
 # 生成 root 密码（阿里云需要）
 get_root_password(){
-    if [[ ! -f .security.env ]]; then
-        openssl rand -out .security.env -base64 12
+    local security_file=$HOME/.security.password.env
+    if [[ ! -f $security_file ]]; then
+        openssl rand -out $security_file -base64 12
     fi
 
-    export ROOT_PASSWORD=$(cat .security.env)
+    export ROOT_PASSWORD=$(cat $security_file)
     echo $ROOT_PASSWORD
 }
 
@@ -345,8 +346,8 @@ create_server(){
 remote_sysctl(){
     local server=$1
     ssh root@$server "
-        echo 'net.core.default_qdisc=fq' >> /etc/sysctl.conf
-        echo 'net.ipv4.tcp_congestion_control=bbr' >> /etc/sysctl.conf
+        echo 'net.core.default_qdisc=fq' > /etc/sysctl.d/50-network-tune.conf
+        echo 'net.ipv4.tcp_congestion_control=bbr' >> /etc/sysctl.d/50-network-tune.conf
     "
 }
 

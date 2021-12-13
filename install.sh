@@ -628,14 +628,14 @@ install_oh_my_zsh() {
 		if [ ! -f $ZSH_CUSTOM/custom.zsh ]; then
 			if [ -f zsh_custom.zsh ]; then
 				# copy from local
-				cp zsh_custom.zsh $ZSH_CUSTOM/custom.zsh
-				cp zsh_p10k.zsh $HOME/.p10k.zsh
-				cp zsh_p10k-instant-prompt-tao.zsh $HOME/.cache/p10k-instant-prompt-tao.zsh
+				cp zsh/custom.zsh $ZSH_CUSTOM/custom.zsh
+				cp zsh/.p10k.zsh $HOME/.p10k.zsh
+				cp zsh/p10k-instant-prompt-local.zsh $HOME/.cache/p10k-instant-prompt-local.zsh
 			else
 				# fetch from repo
-				curl -fsSL $REPO_URL/zsh_custom.zsh -o $ZSH_CUSTOM/custom.zsh
-				curl -fsSL $REPO_URL/zsh_p10k.zsh -o $HOME/.p10k.zsh
-				curl -fsSL $REPO_URL/zsh_p10k-instant-prompt-tao.zsh -o $HOME/.cache/p10k-instant-prompt-tao.zsh
+				curl -fsSL $REPO_URL/zsh/custom.zsh -o $ZSH_CUSTOM/custom.zsh
+				curl -fsSL $REPO_URL/zsh/.p10k.zsh -o $HOME/.p10k.zsh
+				curl -fsSL $REPO_URL/zsh/p10k-instant-prompt-local.zsh -o $HOME/.cache/p10k-instant-prompt-local.zsh
 			fi
 		fi
 	fi
