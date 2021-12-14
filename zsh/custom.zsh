@@ -201,6 +201,133 @@ torbrowser() {
   docker rm tor-browser
 }
 
+# 映射云盘
+drive() {
+    option_service=dropbox
+    option_verbose=false
+    option_path=$HOME/drive
+
+    cmd=$(basename $0)
+    read -r -d '' usage <<EOF
+$cmd command will mount online storage service with local folder by rclone.
+
+USAGE:
+    $cmd [FLAGS] [SUBCOMMAND]
+
+FLAGS:
+    -s <service>
+        online storage service. [dropbox,gdrive], (default: ${option_service})
+
+    -d <local path>
+        local directory to mount as remote storage. (default: ${option_path})
+
+    -v
+        Verbose
+
+SUBCOMMAND:
+    mount
+      mount online storage to local path
+
+    umount
+      umounting the online storage
+
+    status
+      list all current rclone mounting
+
+    help
+      show current usage information
+
+EOF
+
+
+    while getopts ":s:d:v" opt; do
+        case "${opt}" in
+            s)
+                option_service=$OPTARG
+                case "$option_service" in
+                    dropbox|gdrive)    ;;
+                    *)
+                        echo "Invalid online storage service: $option_service"
+                        echo "$usage"
+                        return -1
+                        ;;
+                esac
+                ;;
+            d)
+                option_path=$OPTARG
+                ;;
+            v)
+                option_verbose=true
+                ;;
+            :)
+                echo "Missing argument: $OPTARG"
+                echo "$usage"
+                return -1
+                ;;
+            *)
+                echo "Invalid option: $OPTARG"
+                echo "$usage"
+                return -1
+                ;;
+        esac
+    done
+    shift $((OPTIND -1))
+
+    # if [ -z "$option_path" ]; then
+    #     # set path based on service
+    #     case "$option_service" in
+    #         dropbox)    option_path=$HOME/Dropbox   ;;
+    #         gdrive)     option_path=$HOME/gdrive    ;;
+    #         *)          option_path=$HOME/drive     ;;
+    #     esac
+    # fi
+
+    local -r subcommand="${1:-}"
+    case "$subcommand" in
+        mount)
+            if [ "option_verbose" == true ]; then
+              echo "mounting ${option_service} to ${option_path}"
+            fi
+
+            local -r mount_path=$(mount | grep rclone | grep "${option_service}" | cut -d' ' -f3)
+            if [ ! -z "${mount_path}" ]; then
+                echo "Storage service '${option_service}' has been mounted on '${mount_path}'"
+                return -1
+            fi
+
+            if [ ! -d "${option_path}" ]; then
+                mkdir -p "${option_path}"
+            fi
+            rclone mount ${option_service}: ${option_path} --vfs-cache-mode full --daemon
+            ;;
+
+        umount)
+            # get rclone mounting location for the given service
+            local -r mount_path=$(mount | grep rclone | grep "${option_service}" | cut -d' ' -f3)
+            if [ -z "${mount_path}" ]; then
+                echo "Cannot find mouting path for service ${option_service}"
+                return -1
+            fi
+
+            if [ "option_verbose" == true ]; then
+              echo "umounting ${mount_path} of service ${option_service}"
+            fi
+            fusermount -u ${mount_path}
+            ;;
+
+        status)
+            if [ "option_verbose" == true ]; then
+                echo "current mounting:"
+            fi
+            mount | grep rclone
+            ;;
+
+        *)
+            echo "$usage"
+            ;;
+    esac
+}
+
 
 ######################################
 ##  My Environment Variables
