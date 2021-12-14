@@ -58,6 +58,8 @@ command_packages=(
 	neofetch
 	zeal
 	fzf
+	byobu
+	htop
 	terminator
 	variety
 )
