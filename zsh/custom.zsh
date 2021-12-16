@@ -285,7 +285,7 @@ EOF
     local -r subcommand="${1:-}"
     case "$subcommand" in
         mount)
-            if [ "option_verbose" == true ]; then
+            if [[ "$option_verbose" == true ]]; then
               echo "mounting ${option_service} to ${option_path}"
             fi
 
@@ -309,14 +309,14 @@ EOF
                 return -1
             fi
 
-            if [ "option_verbose" == true ]; then
+            if [[ "$option_verbose" == true ]]; then
               echo "umounting ${mount_path} of service ${option_service}"
             fi
             fusermount -u ${mount_path}
             ;;
 
         status)
-            if [ "option_verbose" == true ]; then
+            if [[ "$option_verbose" == true ]]; then
                 echo "current mounting:"
             fi
             mount | grep rclone
