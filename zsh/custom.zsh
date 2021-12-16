@@ -403,7 +403,7 @@ case "$OSTYPE" in
 esac
 
 # bin
-zplug "twang2218/dotfiles", as:command, use:"bin/{qq,sss,server,domain}"
+zplug "twang2218/dotfiles", as:command, use:"bin/{qq,sss,server,domain,cloud,project}"
 
 # Zsh plugin for installing, updating and loading nvm
 export NVM_LAZY_LOAD=true
