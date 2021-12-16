@@ -129,9 +129,12 @@ config_git() {
 	echo "[Setting] git config..."
 	local user_name=$1
 	local user_email=$2
-	git config --global credential.helper store
-	git config --global user.name $user_name
-	git config --global user.email $user_email
+
+	if ! git config --global user.name ; then
+		git config --global credential.helper store
+		git config --global user.name $user_name
+		git config --global user.email $user_email
+	fi
 	git config --global --list
 }
 
@@ -150,6 +153,15 @@ install_docker() {
 
 	# curl -fsSL https://get.docker.com/ | sh -s -- --mirror Aliyun
 
+	docker_prerequisite_packages=(
+		apt-transport-https
+		ca-certificates
+		curl
+		gnupg-agent
+		software-properties-common
+	)
+	apt_install "${docker_prerequisite_packages[@]}"
+
 	if [ -f /etc/apt/sources.list.d/docker.list ]; then
 		echo "[Exists] '/etc/apt/sources.list.d/docker.list'"
 	else
@@ -159,6 +171,19 @@ install_docker() {
 	fi
 
 	apt_install docker-ce docker-ce-cli containerd.io
+
+	if [[ ! -z "$DOCKER_MIRROR" ]]; then
+		echo 'Setup Docker Hub mirror'
+		if [[ -f /etc/docker/daemon.json ]]; then
+			sudo mv /etc/docker/daemon.json /etc/docker/daemon.json.backup
+		fi
+		echo "{\"registry-mirrors\": [\"$DOCKER_MIRROR\"]}" | sudo tee /etc/docker/daemon.json
+	fi
+
+	sudo systemctl enable docker
+	sudo systemctl restart docker
+
+	docker info
 }
 
 remove_docker() {
@@ -274,6 +299,11 @@ fcitx_packages=(
 
 install_fcitx() {
 	echo "[Installing] FCITX..."
+	if dpkg -l fcitx | grep -q ii; then
+		echo "[Exists] fcitx has been installed already."
+		return
+	fi
+
 	# Wayland is not supported by fcitx yet, so don't use it on 17.10+
 	apt_install "${fcitx_packages[@]}"
 	apt_install im-config
