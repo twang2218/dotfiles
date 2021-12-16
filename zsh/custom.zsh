@@ -328,6 +328,116 @@ EOF
     esac
 }
 
+# 备份、恢复项目到指定位置
+project() {
+    local option_path=$HOME/drive/Dev
+    local option_verbose=false
+    local -r timestamp=`date +'%F_%H-%M'`
+
+    local -r cmd=$(basename $0)
+    read -r -d '' usage <<EOF
+$cmd command will backup/restore the project on cloud storage.
+
+USAGE:
+    $cmd [FLAGS] [SUBCOMMAND]
+
+FLAGS:
+    -d <project_backup_directory>
+        the backup directory of projects. (default: ${option_path})
+
+SUBCOMMAND:
+    pack <name>
+      pack specified project to backup directory.
+
+    unpack <name>
+      unpack specified project from the backup directory.
+
+    show <name>
+      show all archives of the specified project on the backup directory.
+
+    list
+      list all the archives on the backup directory.
+
+    help
+      show current usage information
+
+EOF
+
+
+    while getopts ":d:v" opt; do
+        case "${opt}" in
+            d)
+                option_path=$OPTARG
+                ;;
+            :)
+                echo "Missing argument: $OPTARG"
+                echo "$usage"
+                return -1
+                ;;
+            *)
+                echo "Invalid option: $OPTARG"
+                echo "$usage"
+                return -1
+                ;;
+        esac
+    done
+    shift $((OPTIND -1))
+
+    if [ ! -d "${option_path}" ]; then
+        echo "Project backup directory '${option_path}' doesn't exist."
+        return -1
+    fi
+
+    local -r subcommand="${1:-}"
+    local project_name="${2:-}"
+    case "$subcommand" in
+        pack)
+            if [ -z "${project_name}" ]; then
+                echo "missing project name."
+                echo "$usage"
+                return -1
+            fi
+            if [ ! -d "${project_name}" ]; then
+                echo "Project '${project_name} doesn't exist."
+                return -1
+            fi
+            # pack
+            tar -czvf ${option_path}/${project_name}.$timestamp.tgz "${project_name}"
+            ;;
+        unpack)
+            if [ -z "${project_name}" ]; then
+                echo "missing project name."
+                echo "$usage"
+                return -1
+            fi
+            if [[ "${project_name}" == *.* ]]; then
+                # 'project_name' contains dot, means it's file basename
+                # extract real project name
+                project_file="${project_name}"
+                project_name="${project_name%%.*}"
+            else
+                project_file="$(ls -t ${option_path}/${project_name}*.tgz | head -n1)"
+            fi
+            mkdir -p ${project_name}
+            tar -zxvf "${project_file}" --strip-components=1 -C ${project_name}
+            ;;
+        show)
+            if [ -z "${project_name}" ]; then
+                echo "missing project name."
+                echo "$usage"
+                return -1
+            fi
+            ls -hal ${option_path}/${project_name}*.tgz
+            ;;
+        list)
+            ls -hal ${option_path}/*.tgz
+            ;;
+        *)
+            echo "$usage"
+            ;;
+    esac
+}
+
 
 ######################################
 ##  My Environment Variables
