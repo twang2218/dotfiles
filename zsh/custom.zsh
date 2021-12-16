@@ -390,15 +390,15 @@ zplug "b4b4r07/httpstat", \
 case "$OSTYPE" in
   linux*)
     # linux
-    zplug "digitalocean/doctl", as:command, rename-to:doctl, use:"*linux*amd64*"
-    zplug "aliyun/aliyun-cli", as:command, rename-to:aliyun, use:"*linux*amd64*"
+    zplug "digitalocean/doctl", as:command, from:gh-r, rename-to:doctl, use:"*linux*amd64*"
+    zplug "aliyun/aliyun-cli", as:command, from:gh-r, rename-to:aliyun, use:"*linux*amd64*"
     ;;
   darwin*)
     # macOS
     zplug "plugins/brew", from:oh-my-zsh
     zplug "plugins/osx", from:oh-my-zsh
-    zplug "digitalocean/doctl", as:command, rename-to:doctl, use:"*darwin*amd64*"
-    zplug "aliyun/aliyun-cli", as:command, rename-to:aliyun, use:"*darwin*amd64*"
+    zplug "digitalocean/doctl", as:command, from:gh-r, rename-to:doctl, use:"*darwin*amd64*"
+    zplug "aliyun/aliyun-cli", as:command, from:gh-r, rename-to:aliyun, use:"*darwin*amd64*"
     ;;
 esac
 
@@ -424,4 +424,4 @@ if ! zplug check --verbose; then
 fi
 
 
-zplug load
+zplug load --verbose

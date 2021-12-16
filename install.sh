@@ -62,6 +62,7 @@ command_packages=(
 	htop
 	terminator
 	variety
+	awscli
 )
 
 install_apt_common() {
@@ -666,6 +667,10 @@ remove_oh_my_zsh() {
 
 	if [ -d $HOME/.oh-my-zsh ]; then
 		rm -rf $HOME/.oh-my-zsh
+	fi
+
+	if [ -d $HOME/.zplug ]; then
+		rm -rf $HOME/.zplug
 	fi
 
 	remove_fonts
