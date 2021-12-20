@@ -58,6 +58,8 @@ command_packages=(
 	neofetch
 	zeal
 	fzf
+	fortunes-zh
+	cowsay
 	byobu
 	htop
 	terminator

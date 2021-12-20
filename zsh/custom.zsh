@@ -535,3 +535,7 @@ fi
 
 
 zplug load --verbose
+
+# 显示谚语
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
+exec fortune-zh | cowsay -f tux -n
