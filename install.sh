@@ -338,7 +338,7 @@ install_sogou() {
 		echo "[Exists] Sogou Pinyin has been installed already."
 	else
 		echo "[Installing] sogoupinyin..."
-		wget "https://pinyin.sogou.com/linux/download.php?f=linux&bit=64" -O /tmp/sogoupinyin.deb
+		curl -fsSL "https://pinyin.sogou.com/linux/download.php?f=linux&bit=64" -o /tmp/sogoupinyin.deb
 		sudo apt install -y /tmp/sogoupinyin.deb
 		rm /tmp/sogoupinyin.deb
 	fi
@@ -401,7 +401,7 @@ install_keeweb() {
 		echo "[Exists] KeeWeb has been installed already."
 	else
 		echo "[Installing] keeweb-desktop..."
-		wget https://github.com/keeweb/keeweb/releases/download/v$KEEWEB_VERSION/KeeWeb-$KEEWEB_VERSION.linux.x64.deb -O /tmp/keeweb.deb
+		curl -fsSL https://github.com/keeweb/keeweb/releases/download/v$KEEWEB_VERSION/KeeWeb-$KEEWEB_VERSION.linux.x64.deb -o /tmp/keeweb.deb
 		sudo apt install -y /tmp/keeweb.deb
 		rm /tmp/keeweb.deb
 	fi
@@ -469,6 +469,43 @@ remove_vscode() {
 	fi
 
 	apt_remove code
+}
+
+anaconda_prerequisite_packages=(
+	libgl1-mesa-glx
+	libegl1-mesa
+	libxrandr2
+	libxrandr2
+	libxss1
+	libxcursor1
+	libxcomposite1
+	libasound2
+	libxi6
+	libxtst6
+)
+install_anaconda() {
+	if [ -d $HOME/anaconda3 ]; then
+		echo "[Exists] Anaconda has been installed already."
+		return
+	fi
+
+	# anaconda_prerequisite_packages
+	apt_install "${anaconda_prerequisite_packages[@]}"
+
+	# Download anaconda and install
+	conda_download=/tmp/Anaconda3.sh
+	curl -fsSL https://repo.anaconda.com/archive/Anaconda3-2021.11-Linux-x86_64.sh -o ${conda_download}
+	bash ${conda_download} -b -p $HOME/anaconda3
+	rm ${conda_download}
+}
+
+remove_anaconda() {
+	if [ ! -d $HOME/anaconda3 ]; then
+		echo "[Not Found] Anaconda3 ..."
+		return
+	fi
+
+	rm -rf $HOME/anaconda3
 }
 
 install_via_ppa() {
@@ -775,6 +812,7 @@ install_linux() {
 	install_keeweb
 	install_chrome
 	install_vscode
+	install_anaconda
 
 	install_via_ppa
 	install_via_snaps
@@ -800,6 +838,7 @@ remove_linux() {
 	remove_keeweb
 	remove_chrome
 	remove_vscode
+	remove_anaconda
 
 	remove_via_ppa
 	remove_via_snaps
