@@ -534,7 +534,7 @@ if ! zplug check --verbose; then
 fi
 
 
-zplug load --verbose
+zplug load
 
 # 显示谚语
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet

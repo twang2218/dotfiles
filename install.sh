@@ -785,39 +785,102 @@ cleanup() {
 	esac
 }
 
-install_linux() {
-	install_apt_common
-	install_graphics intel
-	install_graphics nvidia
-	install_kernel
+install_linux_all() {
+	install_linux common
+	install_linux graphics
+	install_linux kernel
+	install_linux im
+	install_linux zsh
+	install_linux docker
+	install_linux virtualbox
+	install_linux dropbox
+	install_linux keeweb
+	install_linux chrome
+	install_linux vscode
+	install_linux anaconda
+	install_linux ppa
+	install_linux snap
+}
 
-	# 输入法选择
-	case "$(lsb_release -s -c)" in
-		xenial|focal)
-			install_fcitx
-			install_sogou
+remove_linux_all() {
+	remove_linux common
+	remove_linux graphics
+	remove_linux kernel
+	remove_linux im
+	remove_linux zsh
+	remove_linux docker
+	remove_linux virtualbox
+	remove_linux dropbox
+	remove_linux keeweb
+	remove_linux chrome
+	remove_linux vscode
+	remove_linux anaconda
+	remove_linux ppa
+	remove_linux snaps
+}
+
+install_linux() {
+	case "$1" in
+		common)
+			install_apt_common
 			;;
-		*)
-			# fcitx 尚不支持 Wayland，所以只可以用 ibus
-			install_ibus
+		graphics)
+			install_graphics intel
+			install_graphics nvidia
+			;;
+		kernel)
+			install_kernel
+			;;
+		im)
+			# 输入法选择
+			case "$(lsb_release -s -c)" in
+				xenial|focal)
+					install_fcitx
+					install_sogou
+					;;
+				*)
+					# fcitx 尚不支持 Wayland，所以只可以用 ibus
+					install_ibus
+					;;
+			esac
+			;;
+		zsh)
+			install_oh_my_zsh
+			;;
+		docker)
+			install_docker
+			install_nvidia_docker
+			;;
+		virtualbox)
+			install_virtualbox
+			;;
+		dropbox)
+			install_dropbox
+			;;
+		keeweb)
+			install_keeweb
+			;;
+		chrome)
+			install_chrome
+			;;
+		vscode)
+			install_vscode
+			;;
+		anaconda)
+			install_anaconda
+			;;
+		ppa)
+			install_via_ppa
+			;;
+		snap)
+			install_via_snaps
+			;;
+		*|all)
+			install_linux_all
 			;;
 	esac
 
-
-	install_oh_my_zsh
-	install_docker
-	install_nvidia_docker
-	install_virtualbox
-	install_dropbox
-	install_keeweb
-	install_chrome
-	install_vscode
-	install_anaconda
-
-	install_via_ppa
-	install_via_snaps
-
-
+	# 额外设置
 	config_git $user_name $user_email
 	gnome_dock_favorite_apps
 
@@ -825,23 +888,66 @@ install_linux() {
 }
 
 remove_linux() {
-	remove_apt_common
-	remove_graphics intel
-	remove_graphics nvidia
-	remove_kernel
-	remove_oh_my_zsh
+	case "$1" in
+		common)
+			remove_apt_common
+			;;
+		graphics)
+			remove_graphics intel
+			remove_graphics nvidia
+			;;
+		kernel)
+			remove_kernel
+			;;
+		im)
+			# 输入法选择
+			case "$(lsb_release -s -c)" in
+				xenial|focal)
+					remove_fcitx
+					remove_sogou
+					;;
+				*)
+					# fcitx 尚不支持 Wayland，所以只可以用 ibus
+					remove_ibus
+					;;
+			esac
+			;;
+		zsh)
+			remove_oh_my_zsh
+			;;
+		docker)
+			remove_docker
+			remove_nvidia_docker
+			;;
+		virtualbox)
+			remove_virtualbox
+			;;
+		dropbox)
+			remove_dropbox
+			;;
+		keeweb)
+			remove_keeweb
+			;;
+		chrome)
+			remove_chrome
+			;;
+		vscode)
+			remove_vscode
+			;;
+		anaconda)
+			remove_anaconda
+			;;
+		ppa)
+			remove_via_ppa
+			;;
+		snap)
+			remove_via_snaps
+			;;
+		*|all)
+			remove_linux_all
+			;;
+	esac
 
-	remove_docker
-	remove_nvidia_docker
-	remove_virtualbox
-	remove_dropbox
-	remove_keeweb
-	remove_chrome
-	remove_vscode
-	remove_anaconda
-
-	remove_via_ppa
-	remove_via_snaps
 }
 
 
@@ -936,19 +1042,23 @@ install_macos() {
 }
 
 main() {
-	case "$1" in
-		remove)
-			case "$OSTYPE" in
-				*darwin*)	remove_macos	;;
-				*linux*)	remove_linux	;;
-			esac
-			;;
+	local -r cmd="$1"
+	shift
+	case "$cmd" in
 		install)
 			case "$OSTYPE" in
-				*darwin*)	install_macos	;;
-				*linux*)	install_linux	;;
+				*darwin*)	install_macos		;;
+				*linux*)	install_linux "$@"	;;
 			esac
 			;;
+		remove)
+			case "$OSTYPE" in
+				*darwin*)	remove_macos		;;
+				*linux*)	remove_linux "$@"	;;
+			esac
+			;;
+		*)
+			echo "Usage: $0 <install|remove>"	;;
 	esac
 }
 
