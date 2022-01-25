@@ -464,14 +464,32 @@ if [ ! -d $HOME/bin ]; then
 fi
 export PATH=$PATH:$HOME/bin:$HOME/Dropbox/bin
 
+## extra paths for macOS
+case "$OSTYPE" in
+  darwin*)
+    ## curl
+    export PATH="/usr/local/opt/curl/bin:$PATH"
+    ## gnu-sed
+    export PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
+    ;;
+esac
+
+# Extra
 ######################################
 ##  ZPlug
 ######################################
 
 ## zsh-zplug
 ZPLUG_BIN=$HOME/bin
-source /usr/share/zplug/init.zsh
 
+## initialize zplug
+case "$OSTYPE" in
+  linux*)    export ZPLUG_HOME=/usr/share/zplug     ;;
+  darwin*)   export ZPLUG_HOME=/usr/local/opt/zplug ;;
+esac
+source $ZPLUG_HOME/init.zsh
+
+## load plugins
 zplug "plugins/git",	from:oh-my-zsh
 zplug "plugins/golang",	from:oh-my-zsh
 zplug "plugins/command-not-found",	from:oh-my-zsh
@@ -506,9 +524,9 @@ case "$OSTYPE" in
   darwin*)
     # macOS
     zplug "plugins/brew", from:oh-my-zsh
-    zplug "plugins/osx", from:oh-my-zsh
+    zplug "plugins/macos", from:oh-my-zsh
     zplug "digitalocean/doctl", as:command, from:gh-r, rename-to:doctl, use:"*darwin*amd64*"
-    zplug "aliyun/aliyun-cli", as:command, from:gh-r, rename-to:aliyun, use:"*darwin*amd64*"
+    # zplug "aliyun/aliyun-cli", as:command, from:gh-r, rename-to:aliyun, use:"*macosx*amd64*"
     ;;
 esac
 
@@ -538,7 +556,10 @@ zplug load
 
 # 显示谚语
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
-exec fortune-zh | cowsay -f tux -n
+case "$OSTYPE" in
+  linux*)     exec fortune-zh | cowsay -f tux -n    ;;
+  darwin*)    exec fortune | cowsay -f tux -n       ;;
+esac
 
 # Anaconda
 

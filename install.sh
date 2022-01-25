@@ -65,6 +65,8 @@ command_packages=(
 	terminator
 	variety
 	awscli
+	zsh
+	zplug
 )
 
 install_apt_common() {
@@ -644,7 +646,7 @@ fonts_nerd_other_names=(
 	VictorMono
 )
 
-install_fonts() {
+install_fonts_linux() {
 	echo "[Installing] Nerd Fonts..."
 	apt_install "${fonts_packages[@]}"
 
@@ -665,7 +667,7 @@ install_fonts() {
 	fi
 }
 
-remove_fonts() {
+remove_fonts_linux() {
 	if [ ! -d $HOME/.local/share/fonts/NerdFonts ]; then
 		echo "[Not Found] Nerd Fonts folder - $HOME/.local/share/fonts/NerdFonts"
 	else
@@ -677,10 +679,112 @@ remove_fonts() {
 	apt_remove "${fonts_packages[@]}"
 }
 
+homebrew_check_package() {
+	if brew list | grep "$1" > /dev/null ; then
+		true
+	else
+		false
+	fi
+}
+
+fonts_homebrew_packages=(
+	font-3270
+	font-agave-nerd-font
+	font-anonymous-pro
+	# font-arimo
+	font-aurulent-sans-mono-nerd-font
+	font-bigblue-terminal-nerd-font
+	font-bitstream-vera
+	font-cascadia-code
+	font-code-new-roman-nerd-font
+	# font-cousine
+	font-daddy-time-mono-nerd-font
+	font-dejavu
+	font-droid-sans-mono-nerd-font
+	font-fantasque-sans-mono
+	font-fira-code
+	font-fontawesome
+	font-go
+	font-gohufont-nerd-font
+	font-hack
+	font-hasklig
+	font-heavy-data-nerd-font
+	font-hurmit-nerd-font
+	font-ia-writer-mono
+	# font-ibm-plex-mono
+	font-inconsolata
+	font-inconsolata-g
+	# font-inconsolata-lgc
+	font-iosevka
+	font-jetbrains-mono
+	# font-lekton
+	font-liberation
+	font-meslo-lg
+	# font-monofur-for-powerline
+	font-monoid
+	font-mononoki
+	font-mplus
+	font-noto-color-emoji
+	font-noto-mono
+	font-noto-sans
+	font-noto-sans-cjk
+	font-noto-sans-cjk-sc
+	font-noto-serif
+	font-noto-serif-cjk
+	font-noto-serif-cjk-sc
+	font-open-dyslexic
+	font-overpass
+	font-profont-nerd-font
+	font-proggy-clean-tt-nerd-font
+	font-powerline-symbols
+	# font-roboto
+	# font-roboto-mono
+	font-roboto-slab
+	font-share-tech-mono
+	# font-source-code-pro
+	font-space-mono
+	font-terminus
+	# font-tinos
+	# font-ubuntu
+	# font-ubuntu-mono
+	font-victor-mono
+)
+
+install_fonts_macos() {
+	if homebrew_check_package font-3270; then
+		echo "[Exists] Nerd fonts have been installed already."
+	else
+		echo "[Installing] Nerd fonts..."
+		brew install "${fonts_homebrew_packages[@]}"
+	fi
+}
+
+remove_fonts_macos() {
+	if homebrew_check_package font-3270; then
+		echo "[Removing] Nerd fonts..."
+		brew uninstall "${fonts_homebrew_packages[@]}"
+	else
+		echo "[Not Found] Nerd fonts haven't been installed yet."
+	fi
+}
+
+install_fonts() {
+	case "$OSTYPE" in
+		linux*)		install_fonts_linux		;;
+		darwin*)	install_fonts_macos		;;
+	esac
+}
+
+remove_fonts() {
+	case "$OSTYPE" in
+		linux*)		remove_fonts_linux		;;
+		darwin*)	remove_fonts_macos		;;
+	esac
+}
+
 # oh-my-zsh
 install_oh_my_zsh() {
-	echo "[Installing] ZSH shell..."
-	apt_install zsh zplug
+	echo "[Installing] Oh-My-Zsh shell..."
 
 	if [ -d $HOME/.oh-my-zsh ]; then
 		echo "[Found] oh-my-zsh has been installed already."
@@ -950,81 +1054,117 @@ remove_linux() {
 
 }
 
+homebrew_common_packages=(
+	aliyun-cli
+	apktool
+	awscli
+	binwalk
+	cowsay
+	curl
+	doctl
+	fortune
+	git
+	gnu-sed
+	gnupg
+	go
+	graphviz
+	htop-osx
+	iperf3
+	iproute2mac
+	jq
+	macvim
+	md5sha1sum
+	media-info
+	openssl
+	p7zip
+	python
+	qrencode
+	r
+	shellcheck
+	tree
+	wakatime-cli
+	webp
+	wget
+	xz
+	yarn
+	youtube-dl
+	zsh
+	zplug
+)
+
+install_macos_common() {
+	if homebrew_check_package zplug; then
+		echo "[Exists] Common packages for macOS have been installed already."
+	else
+		echo "[Installing] Common packages for macOS..."
+		brew install "${homebrew_common_packages[@]}"
+	fi
+}
+
+remove_macos_common() {
+	if homebrew_check_package zplug; then
+		echo "[Removing] Common packages for macOS..."
+		brew uninstall "${homebrew_common_packages[@]}"
+	else
+		echo "[Not Found] No common package has been installed for macOS."
+	fi
+}
+
+homebrew_app_packages=(
+	adobe-dng-converter
+	baidunetdisk
+	diffmerge
+	disk-inventory-x
+	dropbox
+	firefox
+	google-chrome
+	google-drive
+	handbrake
+	iterm2
+	keeweb
+	libreoffice
+	qq
+	qqmusic
+	rescuetime
+	skyfonts
+	sourcetree
+	stellarium
+	visual-studio-code
+	vlc
+	wechat
+	xmind
+)
+
+install_macos_app() {
+	if homebrew_check_package qqmusic; then
+		echo "[Exists] Apps for macOS have been installed already."
+	else
+		echo "[Installing] Apps for macOS..."
+		brew install "${homebrew_app_packages[@]}"
+	fi
+}
+
+remove_macos_app() {
+	if homebrew_check_package zplug; then
+		echo "[Removing] Apps for macOS..."
+		brew uninstall "${homebrew_app_packages[@]}"
+	else
+		echo "[Not Found] No app has been installed for macOS."
+	fi
+}
 
 install_macos() {
 	TAPS=(
-		caskroom/cask
-		caskroom/versions
-	)
-
-	FORMULAS=(
-		aliyun-cli
-		apktool
-		awscli
-		binwalk
-		curl
-		doctl
-		git
-		gnu-sed
-		gnupg2
-		go
-		gpg-agent
-		graphviz
-		htop-osx
-		iperf3
-		iproute2mac
-		jq
-		macvim
-		md5sha1sum
-		media-info
-		nvm
-		openssl
-		p7zip
-		python3
-		qrencode
-		r
-		shellcheck
-		tree
-		wakatime-cli
-		webp
-		wget
-		xz
-		yarn
-		youtube-dl
-		zsh
-	)
-
-	CASKS=(
-		adobe-dng-converter
-		aliwangwang
-		baidunetdisk
-		diffmerge
-		disk-inventory-x
-		dropbox
-		firefox
-		google-chrome
-		google-drive
-		gpgtools
-		handbrake
-		iterm2
-		java
-		jd-gui
-		libreoffice
-		qqmusic
-		rescuetime
-		skyfonts
-		sourcetree
-		stellarium
-		visual-studio-code
-		vlc
-		xmind
+		homebrew/cask
+		homebrew/cask-versions
+		homebrew/cask-fonts
 	)
 
 	# https://brew.sh/
 	if [ -n "$(which brew)" ]; then
 		echo "Homebrew has been installed already."
 	else
-        echo "Installing Homebrew..."
+		echo "Installing Homebrew..."
 		/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 		for tap in "${TAPS[@]}"
@@ -1033,12 +1173,15 @@ install_macos() {
 		done
 	fi
 
+	brew update
+	install_macos_common
+	install_macos_app
+	brew cleanup
 
-    brew install "${FORMULAS[@]}"
-    brew update
-    brew cask install "${CASKS[@]}"
+	# install oh-my-zsh
+	install_oh_my_zsh
 
-    brew cleanup
+	config_git $user_name $user_email
 }
 
 main() {
