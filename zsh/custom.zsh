@@ -313,6 +313,9 @@ EOF
               echo "umounting ${mount_path} of service ${option_service}"
             fi
             fusermount -u ${mount_path}
+            if [ -d "${mount_path}" ]; then
+              rmdir "${mount_path}"
+            fi
             ;;
 
         status)
@@ -471,6 +474,8 @@ case "$OSTYPE" in
     export PATH="/usr/local/opt/curl/bin:$PATH"
     ## gnu-sed
     export PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
+    ## coreutils
+    export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
     ;;
 esac
 
@@ -526,7 +531,8 @@ case "$OSTYPE" in
     zplug "plugins/brew", from:oh-my-zsh
     zplug "plugins/macos", from:oh-my-zsh
     zplug "digitalocean/doctl", as:command, from:gh-r, rename-to:doctl, use:"*darwin*amd64*"
-    # zplug "aliyun/aliyun-cli", as:command, from:gh-r, rename-to:aliyun, use:"*macosx*amd64*"
+    zplug "aliyun/aliyun-cli", as:command, from:gh-r, rename-to:aliyun, use:"*macosx*amd64*"
+    zplug "rclone/rclone", as:command, from:gh-r, rename-to:rclone, use:"*osx*amd64*"
     ;;
 esac
 

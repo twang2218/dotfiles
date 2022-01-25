@@ -1055,10 +1055,10 @@ remove_linux() {
 }
 
 homebrew_common_packages=(
-	aliyun-cli
 	apktool
 	awscli
 	binwalk
+	coreutils
 	cowsay
 	curl
 	doctl
@@ -1073,13 +1073,13 @@ homebrew_common_packages=(
 	iproute2mac
 	jq
 	macvim
-	md5sha1sum
 	media-info
 	openssl
 	p7zip
 	python
 	qrencode
 	r
+	rsync
 	shellcheck
 	tree
 	wakatime-cli
@@ -1123,6 +1123,7 @@ homebrew_app_packages=(
 	iterm2
 	keeweb
 	libreoffice
+	macfuse
 	qq
 	qqmusic
 	rescuetime
