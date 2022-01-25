@@ -203,7 +203,7 @@ torbrowser() {
 
 # 映射云盘
 drive() {
-    option_service=dropbox
+    option_service=gdrive
     option_verbose=false
     option_path=$HOME/drive
 
@@ -238,6 +238,11 @@ SUBCOMMAND:
       show current usage information
 
 EOF
+
+    case "$OSTYPE" in
+      linux*)   mount_entry=$(mount | grep rclone | grep drive)  ;;
+      darwin*)  mount_entry=$(mount | grep macfuse | grep drive) ;;
+    esac
 
 
     while getopts ":s:d:v" opt; do
@@ -303,7 +308,7 @@ EOF
 
         umount)
             # get rclone mounting location for the given service
-            local -r mount_path=$(mount | grep rclone | grep "${option_service}" | cut -d' ' -f3)
+            local -r mount_path=$(echo "${mount_entry}" | grep "${option_service}" | cut -d' ' -f3)
             if [ -z "${mount_path}" ]; then
                 echo "Cannot find mouting path for service ${option_service}"
                 return -1
@@ -312,7 +317,12 @@ EOF
             if [[ "$option_verbose" == true ]]; then
               echo "umounting ${mount_path} of service ${option_service}"
             fi
-            fusermount -u ${mount_path}
+
+            case "$OSTYPE" in
+              linux*)   fusermount -u ${mount_path}   ;;
+              darwin*)  umount ${mount_path}          ;;
+            esac
+
             if [ -d "${mount_path}" ]; then
               rmdir "${mount_path}"
             fi
@@ -322,7 +332,7 @@ EOF
             if [[ "$option_verbose" == true ]]; then
                 echo "current mounting:"
             fi
-            mount | grep rclone
+            echo $mount_entry
             ;;
 
         *)
@@ -333,7 +343,7 @@ EOF
 
 # 备份、恢复项目到指定位置
 project() {
-    local option_path=$HOME/drive/Dev
+    local option_path=$HOME/drive/repo
     local option_verbose=false
     local -r timestamp=`date +'%F_%H-%M'`
 
@@ -430,10 +440,16 @@ EOF
                 echo "$usage"
                 return -1
             fi
-            ls -hal ${option_path}/${project_name}*.tgz
+            (
+              cd ${option_path}
+              ls -hal ${project_name}*.tgz
+            )
             ;;
         list)
-            ls -hal ${option_path}/*.tgz
+            (
+              cd ${option_path}
+              ls -hal *.tgz
+            )
             ;;
         *)
             echo "$usage"
