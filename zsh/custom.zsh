@@ -10,6 +10,7 @@ fi
 ##  My Alias
 ######################################
 
+alias ls='ls --color=auto'
 alias ll='ls -al'
 if [[ "$OSTYPE" == "*darwin*amd64*" ]]; then
   alias brewup='brew update && brew upgrade && brew cleanup; brew doctor; brew cask outdated'
