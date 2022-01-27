@@ -1062,6 +1062,7 @@ homebrew_common_packages=(
 	cowsay
 	curl
 	doctl
+	ffmpeg
 	fortune
 	git
 	gnu-sed
@@ -1087,7 +1088,7 @@ homebrew_common_packages=(
 	wget
 	xz
 	yarn
-	youtube-dl
+	yt-dlp
 	zsh
 	zplug
 )
