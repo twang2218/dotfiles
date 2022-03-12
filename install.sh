@@ -1113,6 +1113,7 @@ remove_macos_common() {
 
 homebrew_app_packages=(
 	adobe-dng-converter
+	anaconda
 	baidunetdisk
 	diffmerge
 	disk-inventory-x

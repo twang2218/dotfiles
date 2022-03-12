@@ -332,7 +332,11 @@ esac
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-CONDA_HOME=$HOME/anaconda3
+case "$OSTYPE" in
+  linux*)   CONDA_HOME=$HOME/anaconda3      ;;
+  darwin*)  CONDA_HOME=/usr/local/anaconda3 ;;
+esac
+
 __conda_setup="$('${CONDA_HOME}/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__conda_setup"
