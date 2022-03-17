@@ -232,11 +232,11 @@ export PATH=$PATH:$HOME/bin:$HOME/Dropbox/bin
 case "$OSTYPE" in
   darwin*)
     ## curl
-    export PATH="/usr/local/opt/curl/bin:$PATH"
+    export PATH="${HOMEBREW_PREFIX}/opt/curl/bin:$PATH"
     ## gnu-sed
-    export PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
+    export PATH="${HOMEBREW_PREFIX}/opt/gnu-sed/libexec/gnubin:$PATH"
     ## coreutils
-    export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+    export PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:$PATH"
     ;;
 esac
 
@@ -253,8 +253,7 @@ case "$OSTYPE" in
   linux*)
     export ZPLUG_HOME=/usr/share/zplug     ;;
   darwin*)
-    export ZPLUG_HOME=/opt/homebrew/opt/zplug ;;
-    #export ZPLUG_HOME=/usr/local/opt/zplug ;;
+    export ZPLUG_HOME=${HOMEBREW_PREFIX}/opt/zplug ;;
 esac
 source $ZPLUG_HOME/init.zsh
 
@@ -337,7 +336,12 @@ esac
 # !! Contents within this block are managed by 'conda init' !!
 case "$OSTYPE" in
   linux*)   CONDA_HOME=$HOME/anaconda3      ;;
-  darwin*)  CONDA_HOME=/usr/local/anaconda3 ;;
+  darwin*)
+    case "$CPUTYPE" in
+      arm64)  CONDA_HOME=/opt/homebrew/Caskroom/miniconda/base  ;;
+      *)      CONDA_HOME=/usr/local/anaconda3 ;;
+    esac
+    ;;
 esac
 
 __conda_setup="$('${CONDA_HOME}/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
@@ -353,3 +357,4 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
+conda activate datascience

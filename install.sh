@@ -751,7 +751,7 @@ fonts_homebrew_packages=(
 )
 
 install_fonts_macos() {
-	if homebrew_check_package font-3270; then
+	if homebrew_check_package font-victor-mono; then
 		echo "[Exists] Nerd fonts have been installed already."
 	else
 		echo "[Installing] Nerd fonts..."
@@ -1111,9 +1111,7 @@ remove_macos_common() {
 	fi
 }
 
-homebrew_app_packages=(
-	adobe-dng-converter
-	anaconda
+homebrew_app_packages_common=(
 	baidunetdisk
 	diffmerge
 	disk-inventory-x
@@ -1126,6 +1124,7 @@ homebrew_app_packages=(
 	keeweb
 	libreoffice
 	macfuse
+	miniconda
 	qq
 	qqmusic
 	rescuetime
@@ -1138,18 +1137,48 @@ homebrew_app_packages=(
 	xmind
 )
 
+homebrew_app_packages_intel=(
+	adobe-dng-converter
+)
+
+homebrew_app_packages_arm64=(
+)
+
+conda_setup() {
+	# conda
+	conda create --name datascience python=3.9
+	conda activate datascience
+	conda install -y pandas matplotlib scikit-learn jupyterlab
+	conda install -y -c apple tensorflow-deps
+	pip install tensorflow-macos tensorflow-metal
+}
+
+conda_unset() {
+	conda env remove -y datascience
+}
+
 install_macos_app() {
 	if homebrew_check_package qqmusic; then
 		echo "[Exists] Apps for macOS have been installed already."
 	else
 		echo "[Installing] Apps for macOS..."
-		brew install "${homebrew_app_packages[@]}"
+		brew install "${homebrew_app_packages_common[@]}"
+		case "$CPUTYPE" in
+			arm64)
+				brew install "${homebrew_app_packages_arm64[@]}"
+				;;
+			x86_64)
+				brew install "${homebrew_app_packages_intel[@]}"
+				;;
+		esac
+		conda_setup
 	fi
 }
 
 remove_macos_app() {
 	if homebrew_check_package zplug; then
 		echo "[Removing] Apps for macOS..."
+		conda_unset
 		brew uninstall "${homebrew_app_packages[@]}"
 	else
 		echo "[Not Found] No app has been installed for macOS."
