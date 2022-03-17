@@ -250,8 +250,11 @@ ZPLUG_BIN=$HOME/bin
 
 ## initialize zplug
 case "$OSTYPE" in
-  linux*)    export ZPLUG_HOME=/usr/share/zplug     ;;
-  darwin*)   export ZPLUG_HOME=/usr/local/opt/zplug ;;
+  linux*)
+    export ZPLUG_HOME=/usr/share/zplug     ;;
+  darwin*)
+    export ZPLUG_HOME=/opt/homebrew/opt/zplug ;;
+    #export ZPLUG_HOME=/usr/local/opt/zplug ;;
 esac
 source $ZPLUG_HOME/init.zsh
 
