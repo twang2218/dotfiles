@@ -829,14 +829,14 @@ install_oh_my_zsh() {
 		if [ ! -f $ZSH_CUSTOM/custom.zsh ]; then
 			if [ -f zsh_custom.zsh ]; then
 				# copy from local
-				cp zsh/custom.zsh $ZSH_CUSTOM/custom.zsh
-				cp zsh/.p10k.zsh $HOME/.p10k.zsh
-				cp zsh/p10k-instant-prompt-local.zsh $HOME/.cache/p10k-instant-prompt-local.zsh
+				cp oh-my-zsh/custom.zsh $ZSH_CUSTOM/custom.zsh
+				cp oh-my-zsh/.p10k.zsh $HOME/.p10k.zsh
+				cp oh-my-zsh/p10k-instant-prompt-local.zsh $HOME/.cache/p10k-instant-prompt-local.zsh
 			else
 				# fetch from repo
-				curl -fsSL $REPO_URL/zsh/custom.zsh -o $ZSH_CUSTOM/custom.zsh
-				curl -fsSL $REPO_URL/zsh/.p10k.zsh -o $HOME/.p10k.zsh
-				curl -fsSL $REPO_URL/zsh/p10k-instant-prompt-local.zsh -o $HOME/.cache/p10k-instant-prompt-local.zsh
+				curl -fsSL $REPO_URL/oh-my-zsh/custom.zsh -o $ZSH_CUSTOM/custom.zsh
+				curl -fsSL $REPO_URL/oh-my-zsh/.p10k.zsh -o $HOME/.p10k.zsh
+				curl -fsSL $REPO_URL/oh-my-zsh/p10k-instant-prompt-local.zsh -o $HOME/.cache/p10k-instant-prompt-local.zsh
 			fi
 		fi
 	fi
@@ -891,9 +891,9 @@ install_zsh_zinit() {
 	echo "[Setup] Zinit..."
 	if [ -f .zinit.zshrc ]; then
 		# backup the original .zshrc and copy the new one
-		cp .zinit.zshrc $HOME/.zshrc
+		cp .zshrc $HOME/.zshrc
 	else
-		curl -fsSL $REPO_URL/.zinit.zshrc -o $HOME/.zshrc
+		curl -fsSL $REPO_URL/.zshrc -o $HOME/.zshrc
 	fi
 }
 
