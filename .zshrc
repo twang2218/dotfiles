@@ -42,7 +42,9 @@ zinit light-mode wait lucid for \
 zinit light-mode as"program" from="gh-r" wait lucid for \
     digitalocean/doctl \
     aliyun/aliyun-cli \
-    pick"**/rclone" rclone/rclone \
+    pick"**/rclone" rclone/rclone
+
+zinit light-mode as"program" from="gh-r" for \
     latipun7/charasay
 
 # dotfiles
