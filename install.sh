@@ -45,7 +45,7 @@ apt_remove() {
 }
 
 # Common Tools
-command_packages=(
+apt_packages_common=(
 	apt-transport-https
 	curl
 	pv
@@ -59,14 +59,13 @@ command_packages=(
 	zeal
 	fzf
 	fortunes-zh
-	cowsay
 	byobu
 	htop
 	terminator
 	variety
 	awscli
+	zinit
 	zsh
-	zplug
 )
 
 install_apt_common() {
@@ -81,7 +80,7 @@ APT::Get::Install-Suggests "false";
 EOF
 	fi
 
-	apt_install "${command_packages[@]}"
+	apt_install "${apt_packages_common[@]}"
 }
 
 remove_apt_common() {
@@ -92,7 +91,7 @@ remove_apt_common() {
 		echo "[Removing] '/etc/apt/apt.conf.d/50no-recommends'..."
 		sudo rm /etc/apt/apt.conf.d/50no-recommends
 	fi
-	apt_remove "${command_packages[@]}"
+	apt_remove "${apt_packages_common[@]}"
 }
 
 # Graphics Driver
@@ -558,24 +557,32 @@ remove_via_ppa() {
 # Snap apps
 install_via_snaps() {
 	sudo snap refresh
+	sudo snap install alacritty
 	sudo snap install --classic go
 	sudo snap install --classic flutter
 	sudo snap install wire
-	sudo snap install icalingua
 	sudo snap install telegram-desktop
 	sudo snap install vlc
+	sudo snap install obsidian
 	sudo snap install qqmusic-snap
+	sudo snap install --classic rustup
+	sudo snap install xmind
+	sudo snap install zotero
 }
 
 remove_via_snaps() {
 	sudo snap refresh
+	sudo snap remove alacritty
 	sudo snap remove go
 	sudo snap remove flutter
 	sudo snap remove wire
-	sudo snap remove icalingua
 	sudo snap remove telegram-desktop
 	sudo snap remove vlc
+	sudo snap remove obsidian
 	sudo snap remove qqmusic-snap
+	sudo snap remove rustup
+	sudo snap remove xmind
+	sudo snap remove zotero
 }
 
 fonts_packages=(
@@ -589,13 +596,13 @@ fonts_packages=(
 	fonts-firacode
 	fonts-hack-ttf
 	fonts-hermit
-	fonts-inconsolata
+	# fonts-inconsolata
 	fonts-jetbrains-mono
 	fonts-liberation2
 	fonts-monofur
 	fonts-monoid
 	fonts-mononoki
-	fonts-mplus
+	# fonts-mplus
 	fonts-noto
 	fonts-noto-cjk
 	fonts-noto-cjk-extra
@@ -679,6 +686,24 @@ remove_fonts_linux() {
 	apt_remove "${fonts_packages[@]}"
 }
 
+install_rust() {
+	if [ command -v rustc ]; then
+		echo "[Exists] Rust has been installed already."
+	else
+		echo "[Installing] Rust..."
+		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+	fi
+}
+
+remove_rust() {
+	if [ ! command -v rustc ]; then
+		echo "[Not Found] Rust..."
+	else
+		echo "[Removing] Rust..."
+		rustup self uninstall
+	fi
+}
+
 homebrew_check_package() {
 	if brew list | grep "$1" > /dev/null ; then
 		true
@@ -712,8 +737,8 @@ fonts_homebrew_packages=(
 	font-hurmit-nerd-font
 	font-ia-writer-mono
 	# font-ibm-plex-mono
-	font-inconsolata
-	font-inconsolata-g
+	# font-inconsolata
+	# font-inconsolata-g
 	# font-inconsolata-lgc
 	font-iosevka
 	font-jetbrains-mono
@@ -723,7 +748,7 @@ fonts_homebrew_packages=(
 	# font-monofur-for-powerline
 	font-monoid
 	font-mononoki
-	font-mplus
+	# font-mplus
 	font-noto-color-emoji
 	font-noto-mono
 	font-noto-sans
@@ -849,6 +874,47 @@ remove_oh_my_zsh() {
 	remove_fonts
 }
 
+# zinit
+install_zsh_zinit() {
+	echo "[Configuring] Zinit..."
+	if [ -f $HOME/.zshrc ]; then
+		# check if it's .zinit.zshrc
+		if grep -q "zinit" $HOME/.zshrc; then
+			echo "[Found] .zshrc for zinit has been installed already."
+			return
+		else
+			echo "[Found] .zshrc exists but not for zinit. Backup it to .zshrc.orig"
+			cp $HOME/.zshrc $HOME/.zshrc.orig
+		fi
+	fi
+
+	echo "[Setup] Zinit..."
+	if [ -f .zinit.zshrc ]; then
+		# backup the original .zshrc and copy the new one
+		cp .zinit.zshrc $HOME/.zshrc
+	else
+		curl -fsSL $REPO_URL/.zinit.zshrc -o $HOME/.zshrc
+	fi
+}
+
+remove_zsh_zinit() {
+	if [ -f $HOME/.zshrc ]; then
+		# check if it's .zinit.zshrc
+		if grep -q "zinit" $HOME/.zshrc; then
+			echo "[Removing] .zshrc for zinit..."
+			rm $HOME/.zshrc
+		else
+			echo "[Not Found] .zshrc for zinit"
+		fi
+	else
+		echo "[Not Found] .zshrc"
+	fi
+	if [ -f $HOME/.zshrc.orig ]; then
+		echo "[Restoring] .zshrc..."
+		mv $HOME/.zshrc.orig $HOME/.zshrc
+	fi
+}
+
 # Add favorite apps to the dock
 gnome_dock_favorite_apps() {
 	local current=$(gsettings get org.gnome.shell favorite-apps)
@@ -901,8 +967,9 @@ install_linux_all() {
 	install_linux keeweb
 	install_linux chrome
 	install_linux vscode
-	install_linux anaconda
+	# install_linux anaconda
 	install_linux ppa
+	# install_linux rust
 	install_linux snap
 }
 
@@ -918,9 +985,10 @@ remove_linux_all() {
 	remove_linux keeweb
 	remove_linux chrome
 	remove_linux vscode
-	remove_linux anaconda
+	# remove_linux anaconda
 	remove_linux ppa
-	remove_linux snaps
+	# remove_linux rust
+	remove_linux snap
 }
 
 install_linux() {
@@ -949,7 +1017,8 @@ install_linux() {
 			esac
 			;;
 		zsh)
-			install_oh_my_zsh
+			# install_oh_my_zsh
+			install_zsh_zinit
 			;;
 		docker)
 			install_docker
@@ -975,6 +1044,9 @@ install_linux() {
 			;;
 		ppa)
 			install_via_ppa
+			;;
+		rust)
+			install_rust
 			;;
 		snap)
 			install_via_snaps
@@ -1017,7 +1089,8 @@ remove_linux() {
 			esac
 			;;
 		zsh)
-			remove_oh_my_zsh
+			# remove_oh_my_zsh
+			remove_zsh_zinit
 			;;
 		docker)
 			remove_docker
@@ -1044,6 +1117,9 @@ remove_linux() {
 		ppa)
 			remove_via_ppa
 			;;
+		rust)
+			remove_rust
+			;;
 		snap)
 			remove_via_snaps
 			;;
@@ -1054,12 +1130,33 @@ remove_linux() {
 
 }
 
-homebrew_common_packages=(
+homebrew_fomulae_common=(
+	# rewritten in Rust
+	bat	# better cat
+	bottom	# better htop
+	delta	# better diff
+	dust	# better du
+	eza # exa	# better ls
+	fd	# better find
+	hyperfine	# better time
+	just	# better make
+	lsd	# better ls
+	macchina	# better ifconfig
+	mcfly	# better history
+	onefetch	# better git
+	ouch    # better zip
+	procs	# better ps
+	ripgrep	# better grep
+	skim	# better fzf
+	starship	# better prompt
+	tokei	# better cloc
+	uv # python project management
+	zoxide	# better cd
+	# other
 	apktool
 	awscli
 	binwalk
 	coreutils
-	cowsay
 	curl
 	doctl
 	ffmpeg
@@ -1074,13 +1171,15 @@ homebrew_common_packages=(
 	iproute2mac
 	jq
 	macvim
+	mactex
 	media-info
 	openssl
 	p7zip
 	python
 	qrencode
-	r
+	rar
 	rsync
+	rustup
 	shellcheck
 	tree
 	wakatime-cli
@@ -1090,28 +1189,12 @@ homebrew_common_packages=(
 	yarn
 	yt-dlp
 	zsh
-	zplug
+	zinit
 )
 
-install_macos_common() {
-	if homebrew_check_package zplug; then
-		echo "[Exists] Common packages for macOS have been installed already."
-	else
-		echo "[Installing] Common packages for macOS..."
-		brew install "${homebrew_common_packages[@]}"
-	fi
-}
-
-remove_macos_common() {
-	if homebrew_check_package zplug; then
-		echo "[Removing] Common packages for macOS..."
-		brew uninstall "${homebrew_common_packages[@]}"
-	else
-		echo "[Not Found] No common package has been installed for macOS."
-	fi
-}
-
-homebrew_app_packages_common=(
+homebrew_fomulae_macos_common=(
+	alacritty
+	arc
 	baidunetdisk
 	diffmerge
 	disk-inventory-x
@@ -1125,6 +1208,7 @@ homebrew_app_packages_common=(
 	libreoffice
 	macfuse
 	miniconda
+	obsidian
 	qq
 	qqmusic
 	rescuetime
@@ -1135,13 +1219,14 @@ homebrew_app_packages_common=(
 	vlc
 	wechat
 	xmind
+	zotero
 )
 
-homebrew_app_packages_intel=(
+homebrew_fomulae_macos_intel=(
 	adobe-dng-converter
 )
 
-homebrew_app_packages_arm64=(
+homebrew_fomulae_macos_arm64=(
 )
 
 conda_setup() {
@@ -1162,63 +1247,78 @@ conda_unset() {
 	conda env remove -y datascience
 }
 
-install_macos_app() {
-	if homebrew_check_package qqmusic; then
-		echo "[Exists] Apps for macOS have been installed already."
-	else
-		echo "[Installing] Apps for macOS..."
-		brew install "${homebrew_app_packages_common[@]}"
-		case "$CPUTYPE" in
-			arm64)
-				brew install "${homebrew_app_packages_arm64[@]}"
-				;;
-			x86_64)
-				brew install "${homebrew_app_packages_intel[@]}"
-				;;
-		esac
-		conda_setup
-	fi
-}
-
-remove_macos_app() {
-	if homebrew_check_package zplug; then
-		echo "[Removing] Apps for macOS..."
-		conda_unset
-		brew uninstall "${homebrew_app_packages[@]}"
-	else
-		echo "[Not Found] No app has been installed for macOS."
-	fi
-}
-
-install_macos() {
-	TAPS=(
-		homebrew/cask
-		homebrew/cask-versions
-		homebrew/cask-fonts
-	)
-
-	# https://brew.sh/
+install_homebrew() {
 	if [ -n "$(which brew)" ]; then
 		echo "Homebrew has been installed already."
 	else
 		echo "Installing Homebrew..."
 		/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-		for tap in "${TAPS[@]}"
-		do
-			brew tap $tap
-		done
 	fi
+}
 
+remove_homebrew() {
+	if [ -n "$(which brew)" ]; then
+		echo "Removing Homebrew..."
+		/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
+	else
+		echo "Homebrew has been removed already."
+	fi
+}
+
+install_homebrew_formulae() {
 	brew update
-	install_macos_common
-	install_macos_app
+	brew install "${homebrew_fomulae_common[@]}"
+	case "$OSTYPE" in
+		darwin*)
+			brew install "${homebrew_fomulae_macos_common[@]}"
+			case "$CPUTYPE" in
+				arm64)
+					brew install "${homebrew_fomulae_macos_arm64[@]}"
+					;;
+				x86_64)
+					brew install "${homebrew_fomulae_macos_intel[@]}"
+					;;
+			esac
+			;;
+		linux*)
+			# brew install "${homebrew_fomulae_macos_linux[@]}"
+			;;
+	esac
 	brew cleanup
+}
 
-	# install oh-my-zsh
-	install_oh_my_zsh
+remove_homebrew_formulae() {
+	brew uninstall "${homebrew_fomulae_common[@]}"
+	case "$OSTYPE" in
+		darwin*)
+			brew uninstall "${homebrew_fomulae_macos_common[@]}"
+			case "$CPUTYPE" in
+				arm64)
+					brew uninstall "${homebrew_fomulae_macos_arm64[@]}"
+					;;
+				x86_64)
+					brew uninstall "${homebrew_fomulae_macos_intel[@]}"
+					;;
+			esac
+			;;
+		linux*)
+			# brew uninstall "${homebrew_fomulae_macos_linux[@]}"
+			;;
+	esac
+}
 
+install_macos() {
+	install_homebrew
+	install_homebrew_formulae
+
+	install_zsh_zinit
 	config_git $user_name $user_email
+}
+
+remove_macos() {
+	remove_homebrew_formulae
+	remove_homebrew
+	remove_zsh_zinit
 }
 
 main() {
