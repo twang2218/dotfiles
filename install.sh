@@ -1148,7 +1148,12 @@ conda_setup() {
 	# conda
 	conda create --name datascience python=3.9
 	conda activate datascience
-	conda install -y pandas matplotlib scikit-learn jupyterlab
+	conda install -y \
+		pandas \
+		matplotlib \
+		scikit-learn \
+		seaborn \
+		jupyterlab
 	conda install -y -c apple tensorflow-deps
 	pip install tensorflow-macos tensorflow-metal
 }

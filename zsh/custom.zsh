@@ -55,6 +55,8 @@ find_latest() {
 # backup photography folder to external disk
 backup_photo() {
   # TODO: find src and dest automatically, and add confirmation option
+  # rsync -avP /Volumes/LaCie/user/Tao/Photo/ /Volumes/private/tao/Photography/Tao
+  # rsync -avP /Volumes/LaCie/user /Volumes/8TB_DISK_MAC/
   local src=${1:-/Volumes/2TB_USB_WD/user/Tao/Photo/}
   local dest=${2:-/Volumes/private-1/Photography/TaoPhoto}
   
