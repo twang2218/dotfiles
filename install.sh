@@ -442,6 +442,27 @@ remove_chrome() {
 	apt_remove google-chrome-stable
 }
 
+install_alacritty() {
+	echo "[Installing] Alacritty..."
+	if [ -f $HOME/.config/alacritty/alacritty.yml ]; then
+		echo "[Exists] Alacritty has been installed already."
+	else
+		echo "[Installing] Alacritty..."
+		mkdir -p $HOME/.config/alacritty
+		curl -fsSL $REPO_URL/alacritty.yml -o $HOME/.config/alacritty/alacritty.yml
+	fi
+}
+
+remove_alacritty() {
+	echo "[Removing] Alacritty..."
+	if [ ! -f $HOME/.config/alacritty/alacritty.yml ]; then
+		echo "[Not Found] Alacritty..."
+	else
+		echo "[Removing] Alacritty..."
+		rm $HOME/.config/alacritty/alacritty.yml
+	fi
+}
+
 # Visual Studio Code
 install_vscode() {
 	echo "[Installing] Visual Studio Code..."
@@ -968,6 +989,7 @@ install_linux_all() {
 	install_linux chrome
 	install_linux vscode
 	# install_linux anaconda
+	install_linux alacritty
 	install_linux ppa
 	# install_linux rust
 	install_linux snap
@@ -986,6 +1008,7 @@ remove_linux_all() {
 	remove_linux chrome
 	remove_linux vscode
 	# remove_linux anaconda
+	remove_linux alacritty
 	remove_linux ppa
 	# remove_linux rust
 	remove_linux snap
@@ -1019,6 +1042,9 @@ install_linux() {
 		zsh)
 			# install_oh_my_zsh
 			install_zsh_zinit
+			;;
+		alacritty)
+			install_alacritty
 			;;
 		docker)
 			install_docker
@@ -1091,6 +1117,9 @@ remove_linux() {
 		zsh)
 			# remove_oh_my_zsh
 			remove_zsh_zinit
+			;;
+		alacritty)
+			remove_alacritty
 			;;
 		docker)
 			remove_docker
@@ -1312,6 +1341,7 @@ install_macos() {
 	install_homebrew_formulae
 
 	install_zsh_zinit
+	install_alacritty
 	config_git $user_name $user_email
 }
 
@@ -1319,6 +1349,7 @@ remove_macos() {
 	remove_homebrew_formulae
 	remove_homebrew
 	remove_zsh_zinit
+	remove_alacritty
 }
 
 main() {
